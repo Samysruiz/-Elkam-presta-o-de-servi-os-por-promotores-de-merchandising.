@@ -161,9 +161,110 @@ if tipo == "admin":
 
 # -------- MERCADOS --------
 
-    elif menu == "🏪 Mercados":
+   elif menu == "🏪 Mercados":
 
     st.header("Gerenciar mercados")
+
+    # ---------- CADASTRAR ----------
+
+    st.subheader("Cadastrar novo mercado")
+
+    mercado = st.text_input("Nome do mercado")
+    endereco = st.text_input("Endereço")
+    produto = st.text_input("Produto")
+
+    if st.button("Cadastrar mercado"):
+
+        novo = pd.concat([
+        mercados,
+        pd.DataFrame({
+        "mercado":[mercado],
+        "endereco":[endereco],
+        "produto":[produto]
+        })
+        ],ignore_index=True)
+
+        novo.to_excel("mercados.xlsx",index=False)
+
+        st.success("Mercado cadastrado")
+
+    st.divider()
+
+    # ---------- EDITAR ----------
+
+    st.subheader("Editar mercado")
+
+    mercado_sel = st.selectbox(
+    "Selecionar mercado",
+    mercados["mercado"].unique()
+    )
+
+    dados = mercados[
+    mercados.mercado == mercado_sel
+    ]
+
+    endereco_edit = st.text_input(
+    "Endereço",
+    dados.iloc[0]["endereco"]
+    )
+
+    if st.button("Salvar endereço"):
+
+        mercados.loc[
+        mercados.mercado == mercado_sel,
+        "endereco"
+        ] = endereco_edit
+
+        mercados.to_excel("mercados.xlsx",index=False)
+
+        st.success("Endereço atualizado")
+
+    st.divider()
+
+    # ---------- PRODUTOS ----------
+
+    st.subheader("Produtos do mercado")
+
+    produtos = dados["produto"].tolist()
+
+    st.write(produtos)
+
+    novo_produto = st.text_input("Adicionar produto")
+
+    if st.button("Adicionar produto"):
+
+        novo = pd.concat([
+        mercados,
+        pd.DataFrame({
+        "mercado":[mercado_sel],
+        "endereco":[endereco_edit],
+        "produto":[novo_produto]
+        })
+        ],ignore_index=True)
+
+        novo.to_excel("mercados.xlsx",index=False)
+
+        st.success("Produto adicionado")
+
+    prod_del = st.selectbox(
+    "Excluir produto",
+    produtos
+    )
+
+    if st.button("Excluir produto"):
+
+        mercados = mercados[
+        ~((mercados.mercado == mercado_sel) &
+        (mercados.produto == prod_del))
+        ]
+
+        mercados.to_excel("mercados.xlsx",index=False)
+
+        st.success("Produto removido")
+
+    st.divider()
+
+    st.dataframe(mercados)
 
     # ---------- CADASTRAR ----------
 
