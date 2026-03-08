@@ -56,7 +56,7 @@ if tipo == "admin":
             prod = relatorio.groupby("funcionario").size()
             st.bar_chart(prod)
 
-    elif menu == "Funcionários":
+elif menu == "Funcionários":
 
     st.header("Funcionários")
 
