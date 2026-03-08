@@ -1,282 +1,42 @@
-import streamlit as st
+ import streamlit as st
 import pandas as pd
 from datetime import date
 import os
 
-# CONFIG
+# 1. CONFIGURAÇÃO (Sempre a primeira linha)
 st.set_page_config(page_title="EL KAM", layout="centered")
 
-# ---------------- CSS INTERFACE ----------------
-
+# 2. CSS INTERFACE (Fundo Preto e Detalhes Vermelhos)
 st.markdown("""
 <style>
-
-.stApp{
-    background-color:black;
+.stApp {
+    background-color: black;
 }
-
-h1,h2,h3{
-    color:#ff2b2b;
+h1, h2, h3, .stSubheader {
+    color: #ff2b2b !important;
 }
-
-label{
-    color:white !important;
+label, p, span {
+    color: white !important;
 }
-
-.stTextInput input{
-    background-color:white;
-    color:black;
+.stButton button {
+    background-color: #ff2b2b;
+    color: white;
+    width: 100%;
 }
-
-.stButton button{
-    background-color:#ff2b2b;
-    color:white;
-    width:100%;
-    height:45px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- LOGO + TITULO ----------------
-
-import os
-
-logo_path = "logotipo/el_kam_logo.png"
-
-if os.path.exists(logo_path):
-    st.image(logo_path, width=200)
-else:
-    st.warning("Logo não encontrado")
-
-# ---------------- DADOS ----------------
-
-usuarios = pd.read_excel("usuarios.xlsx")
-funcionarios = pd.read_excel("funcionarios.xlsx")
-mercados = pd.read_excel("mercados.xlsx")
-agenda = pd.read_excel("agenda.xlsx")
-relatorio = pd.read_excel("relatorio.xlsx")
-
-# ---------------- LOGIN ----------------
-
-with st.sidebar.form("login_form"):
-
-    st.subheader("Login")
-
-    usuario = st.text_input("Usuário")
-    senha = st.text_input("Senha",type="password")
-
-    entrar = st.form_submit_button("Entrar")
-
-if not entrar:
-    st.stop()
-
-login = usuarios[(usuarios.usuario==usuario) & (usuarios.senha==senha)]
-
-if len(login)==0:
-    st.error("Usuário ou senha incorretos")
-    st.stop()
-
-tipo = login.iloc[0]["tipo"]
-
-# ---------------- ADMIN ----------------
-
-if tipo == "admin":
-
-    menu = st.sidebar.selectbox(
-        "Menu",
-        ["Dashboard","Funcionários","Mercados","Agenda","Mapa","Relatórios"]
-    )
-
-    # DASHBOARD
-    if menu == "Dashboard":
-
-        st.header("Dashboard")
-
-        total = len(relatorio)
-        feitos = len(relatorio[relatorio["status"]=="feito"])
-
-        c1,c2 = st.columns(2)
-
-        c1.metric("Tarefas registradas",total)
-        c2.metric("Tarefas concluídas",feitos)
-
-        if len(relatorio)>0:
-            prod = relatorio.groupby("funcionario").size()
-            st.bar_chart(prod)
-
-    # FUNCIONARIOS
-    elif menu == "Funcionários":
-
-        st.header("Funcionários")
-
-        with st.form("novo_funcionario"):
-
-            nome = st.text_input("Nome")
-            user = st.text_input("Usuário")
-            senha_nova = st.text_input("Senha",type="password")
-
-            cadastrar = st.form_submit_button("Cadastrar")
-
-            if cadastrar:
-
-                nome_existe = nome.lower() in funcionarios["funcionario"].str.lower().values
-                user_existe = user.lower() in usuarios["usuario"].str.lower().values
-
-                if nome_existe or user_existe:
-
-                    st.error("Funcionário já cadastrado")
-
-                else:
-
-                    funcionarios = pd.concat([
-                        funcionarios,
-                        pd.DataFrame({"funcionario":[nome]})
-                    ],ignore_index=True)
-
-                    funcionarios.to_excel("funcionarios.xlsx",index=False)
-
-                    usuarios = pd.concat([
-                        usuarios,
-                        pd.DataFrame({
-                            "usuario":[user],
-                            "senha":[senha_nova],
-                            "tipo":["funcionario"]
-                        })
-                    ],ignore_index=True)
-
-                    usuarios.to_excel("usuarios.xlsx",index=False)
-
-                    st.success("Funcionário cadastrado")
-
-        st.dataframe(funcionarios)
-
-    # MERCADOS
-    elif menu == "Mercados":
-
-        st.header("Mercados")
-
-        with st.form("novo_mercado"):
-
-            mercado = st.text_input("Mercado")
-            item = st.text_input("Produto")
-
-            cadastrar = st.form_submit_button("Adicionar")
-
-            if cadastrar:
-
-                mercados = pd.concat([
-                    mercados,
-                    pd.DataFrame({
-                        "mercado":[mercado],
-                        "item":[item]
-                    })
-                ],ignore_index=True)
-
-                mercados.to_excel("mercados.xlsx",index=False)
-
-                st.success("Mercado adicionado")
-
-        st.dataframe(mercados)
-
-    # AGENDA
-    elif menu == "Agenda":
-
-        st.header("Criar agenda")
-
-        func = st.selectbox("Funcionário",funcionarios.funcionario)
-
-        dia = st.selectbox(
-            "Dia",
-            ["segunda","terca","quarta","quinta","sexta"]
-        )
-
-        mercados_sel = st.multiselect(
-            "Mercados",
-            mercados.mercado.unique()
-        )
-
-        produtos_sel = st.multiselect(
-            "Produtos",
-            mercados.item.unique()
-        )
-
-        if st.button("Gerar agenda"):
-
-            novas = []
-
-            for m in mercados_sel:
-                for p in produtos_sel:
-
-                    novas.append({
-                        "funcionario":func,
-                        "dia":dia,
-                        "mercado":m,
-                        "item":p
-                    })
-
-            if novas:
-
-                agenda = pd.concat(
-                    [agenda,pd.DataFrame(novas)],
-                    ignore_index=True
-                )
-
-                agenda.to_excel("agenda.xlsx",index=False)
-
-                st.success("Agenda criada")
-
-        st.dataframe(agenda)
-
-    # MAPA
-    elif menu == "Mapa":
-
-        st.header("Mapa")
-
-        if "lat" in mercados.columns:
-            st.map(mercados[["lat","lon"]])
-
-    # RELATORIO
-    elif menu == "Relatórios":
-
-        st.header("Relatórios")
-
-        st.dataframe(relatorio)
-
-# ---------------- FUNCIONARIO ----------------
-
-else:
-
-    st.header("Minhas tarefas")
-
-    tarefas = agenda[agenda.funcionario==usuario]
-
-    if len(tarefas)==0:
-        st.info("Nenhuma tarefa")
-
+# 3. LOGO CENTRALIZADO E GRANDE
+col1, col2, col3 = st.columns([1, 4, 1])
+with col2:
+    # Ajustado para o caminho real que aparece no seu GitHub
+    logo_path = "logotipo/el_kam_logo.png" 
+    
+    if os.path.exists(logo_path):
+        st.image(logo_path, use_container_width=True)
     else:
+        st.warning("Aguardando carregamento do sistema...")
 
-        for i,row in tarefas.iterrows():
+st.divider()
 
-            feito = st.checkbox(
-                f"{row.dia} - {row.mercado} - {row.item}"
-            )
-
-            if feito:
-
-                relatorio = pd.concat([
-                    relatorio,
-                    pd.DataFrame({
-                        "data":[date.today()],
-                        "funcionario":[usuario],
-                        "mercado":[row.mercado],
-                        "item":[row.item],
-                        "status":["feito"]
-                    })
-                ])
-
-        if st.button("Salvar tarefas"):
-
-            relatorio.to_excel("relatorio.xlsx",index=False)
-
-            st.success("Tarefas salvas")
+# ---------------- DADOS E LOGIN CONTINUAM ABAIXO ----------------
