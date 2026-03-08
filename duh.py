@@ -107,15 +107,46 @@ if tipo == "admin":
 
     elif menu == "Agenda":
 
-        st.header("Agenda")
+    st.header("Criar agenda")
 
-        if len(funcionarios) > 0:
-            func = st.selectbox("Funcionário", funcionarios.funcionario)
-            dia = st.selectbox("Dia", ["segunda","terca","quarta","quinta","sexta"])
-            mercado = st.selectbox("Mercado", mercados.mercado.unique())
-            item = st.selectbox("Item", mercados[mercados.mercado == mercado].item)
+    func = st.selectbox("Funcionário", funcionarios.funcionario)
 
-            if st.button("Adicionar"):
+    dia = st.selectbox(
+        "Dia",
+        ["segunda","terca","quarta","quinta","sexta"]
+    )
+
+    mercados_sel = st.multiselect(
+        "Mercados",
+        mercados.mercado.unique()
+    )
+
+    produtos_sel = st.multiselect(
+        "Produtos",
+        mercados.item.unique()
+    )
+
+    if st.button("Gerar agenda"):
+
+        novas_tarefas = []
+
+        for m in mercados_sel:
+            for p in produtos_sel:
+
+                novas_tarefas.append({
+                    "funcionario": func,
+                    "dia": dia,
+                    "mercado": m,
+                    "item": p
+                })
+
+        agenda = pd.concat(
+            [agenda, pd.DataFrame(novas_tarefas)]
+        )
+
+        agenda.to_excel("agenda.xlsx", index=False)
+
+        st.success("Agenda criada com sucesso")
                 agenda = pd.concat([agenda,pd.DataFrame({
                     "funcionario":[func],
                     "dia":[dia],
