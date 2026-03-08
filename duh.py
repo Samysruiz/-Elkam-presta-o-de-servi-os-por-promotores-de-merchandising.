@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import date
-from streamlit_js_eval import get_geolocation
+try:
+    from streamlit_js_eval import get_geolocation
+    GEO = True
+except:
+    GEO = False
 
 # ---------------- CONFIG ----------------
 
