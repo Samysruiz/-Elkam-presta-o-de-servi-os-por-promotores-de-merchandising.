@@ -6,34 +6,30 @@ import os
 from reportlab.platypus import SimpleDocTemplate, Table, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
-# --- CONFIGURAÇÃO DA INTERFACE (TELA PRETA E VERMELHO) ---
-st.set_page_config(page_title="EL KAM", layout="wide")
+import streamlit as st
+import pandas as pd
 
-# CSS para forçar o fundo preto e textos vermelhos
+# 1. Configuração ÚNICA e no topo
+st.set_page_config(page_title="EL KAM", layout="centered")
+
+# 2. CSS para Fundo Preto e Títulos Vermelhos
 st.markdown(
     """
     <style>
-    /* Fundo da tela principal */
     .stApp {
         background-color: black;
-        color: white; /* Texto geral em branco para leitura */
+        color: white;
     }
-
-    /* Estilo para o título principal (EL KAM - Prestação de Serviço e Merchandising) */
     .titulo-vermelho {
-        color: #FF0000; /* Vermelho Vivo */
+        color: #FF0000;
         font-size: 40px;
         font-weight: bold;
         text-align: center;
         margin-bottom: 20px;
     }
-
-    /* Estilo para subheader e outros textos importantes em vermelho */
-    h1, h2, h3, .stSubheader {
+    h1, h2, h3, .stSubheader, label, p {
         color: #FF0000 !important;
     }
-
-    /* Cor dos botões (opcional, para combinar) */
     .stButton>button {
         background-color: #FF0000;
         color: white;
@@ -44,29 +40,20 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- EXIBIÇÃO DO LOGO E TÍTULO ---
-# Centralizando o Logo e o Título
+# 3. Exibição do Logo e Título
 col1, col2, col3 = st.columns([1, 2, 1])
-
 with col2:
-    # 1. O LOGO (Substitua pelo caminho correto do seu arquivo de imagem)
-    # Ex: st.image("logo_elkam.png", width=200)
-    # Como não tenho o arquivo da imagem, vou colocar um espaço reservado:
-    st.markdown("<h3 style='text-align: center; color: white;'></h3>", unsafe_allow_html=True)
+    try:
+        # Ajustado para o nome comum de arquivo
+        st.image("el_kam_logo.png", width=200) 
+    except:
+        st.write("Logo não encontrado")
 
-    # 2. O TÍTULO EM VERMELHO
     st.markdown('<p class="titulo-vermelho">EL KAM - Prestação de Serviço e Merchandising</p>', unsafe_allow_html=True)
 
-st.set_page_config(page_title="EL KAM", layout="centered")
+st.divider()
 
-# logo
-try:
-    st.image("logo/el_kam_logo.png.png", width=200)
-except:
-    pass
-
-
-
+#----------------LOGIN---------
 usuarios = pd.read_excel("usuarios.xlsx")
 funcionarios = pd.read_excel("funcionarios.xlsx")
 mercados = pd.read_excel("mercados.xlsx")
