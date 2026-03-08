@@ -162,153 +162,128 @@ if st.sidebar.button("Sair"):
 
 # ================= MENU ADMIN =================
 
-if tipo=="admin":
+# ================= MENU ADMIN =================
+
+if tipo == "admin":
 
     menu_opcoes = {
-"📊 Dashboard":"dashboard",
-"👥 Funcionários":"funcionarios",
-"🏪 Mercados":"mercados",
-"🗺️ Mapa":"mapa",
-"📑 Relatórios":"relatorios",
-"📦 Falta de Produtos":"faltas",
-"🔑 Alterar Senha":"senha"
-}
+        "📊 Dashboard":"dashboard",
+        "👥 Funcionários":"funcionarios",
+        "🏪 Mercados":"mercados",
+        "🗺️ Mapa":"mapa",
+        "📑 Relatórios":"relatorios",
+        "📦 Falta de Produtos":"faltas",
+        "🔑 Alterar Senha":"senha"
+    }
 
-menu = st.sidebar.selectbox(
-"Menu",
-list(menu_opcoes.keys())
-)
+    escolha = st.sidebar.selectbox(
+        "Menu",
+        list(menu_opcoes.keys())
+    )
 
-menu = menu_opcoes[menu]
+    menu = menu_opcoes[escolha]
 
-# ---------------- DASHBOARD ----------------
+    # ---------------- DASHBOARD ----------------
+    if menu == "dashboard":
 
-if menu == "dashboard":
+        st.header("Dashboard")
+        st.metric("Tarefas registradas", len(relatorio))
 
-    st.header("Dashboard")
 
-    st.metric("Tarefas registradas",len(relatorio))
+    # ---------------- FUNCIONARIOS ----------------
+    elif menu == "funcionarios":
 
+        st.header("Cadastrar funcionário")
 
-# ---------------- FUNCIONARIOS ----------------
+        nome = st.text_input("Nome")
+        usuario_novo = st.text_input("Usuário")
+        senha_nova = st.text_input("Senha", type="password")
 
-elif menu == "funcionarios":
+        if st.button("Cadastrar"):
 
-    st.header("Cadastrar funcionário")
+            if usuario_novo in usuarios["usuario"].values:
+                st.error("Usuário já existe")
 
-    nome = st.text_input("Nome")
-    usuario_novo = st.text_input("Usuário")
-    senha_nova = st.text_input("Senha",type="password")
+            else:
+                usuarios2 = pd.concat([
+                    usuarios,
+                    pd.DataFrame({
+                        "usuario":[usuario_novo],
+                        "senha":[senha_nova],
+                        "tipo":["funcionario"]
+                    })
+                ], ignore_index=True)
 
-    if st.button("Cadastrar"):
+                usuarios2.to_excel("usuarios.xlsx", index=False)
+                st.success("Funcionário criado")
 
-        if usuario_novo in usuarios["usuario"].values:
 
-            st.error("Usuário já existe")
+    # ---------------- MERCADOS ----------------
+    elif menu == "mercados":
 
-        else:
+        st.header("Cadastrar mercado")
 
-            usuarios2 = pd.concat([
+        mercado = st.text_input("Mercado")
+        item = st.text_input("Produto")
 
-            usuarios,
+        lat = st.number_input("Latitude")
+        lon = st.number_input("Longitude")
 
-            pd.DataFrame({
+        if st.button("Cadastrar mercado"):
 
-            "usuario":[usuario_novo],
-            "senha":[senha_nova],
-            "tipo":["funcionario"]
+            novo = pd.concat([
+                mercados,
+                pd.DataFrame({
+                    "mercado":[mercado],
+                    "item":[item],
+                    "lat":[lat],
+                    "lon":[lon]
+                })
+            ], ignore_index=True)
 
-            })
+            novo.to_excel("mercados.xlsx", index=False)
+            st.success("Mercado cadastrado")
 
-            ],ignore_index=True)
+        st.dataframe(mercados)
 
-            usuarios2.to_excel("usuarios.xlsx",index=False)
 
-            st.success("Funcionário criado")
+    # ---------------- MAPA ----------------
+    elif menu == "mapa":
 
+        st.header("Mapa")
 
-# ---------------- MERCADOS ----------------
+        if len(mercados) > 0:
+            st.map(mercados[["lat","lon"]])
 
-elif menu == "mercados":
 
-    st.header("Cadastrar mercado")
+    # ---------------- RELATORIOS ----------------
+    elif menu == "relatorios":
 
-    mercado = st.text_input("Mercado")
-    item = st.text_input("Produto")
+        st.header("Relatórios")
+        st.dataframe(relatorio)
 
-    lat = st.number_input("Latitude")
-    lon = st.number_input("Longitude")
 
-    if st.button("Cadastrar mercado"):
+    # ---------------- FALTA PRODUTOS ----------------
+    elif menu == "faltas":
 
-        novo = pd.concat([
+        st.header("Produtos não abastecidos")
+        st.dataframe(faltas)
 
-        mercados,
 
-        pd.DataFrame({
+    # ---------------- ALTERAR SENHA ----------------
+    elif menu == "senha":
 
-        "mercado":[mercado],
-        "item":[item],
-        "lat":[lat],
-        "lon":[lon]
+        st.header("Alterar senha")
 
-        })
+        usuario_sel = st.selectbox("Usuário", usuarios["usuario"])
+        nova = st.text_input("Nova senha", type="password")
 
-        ],ignore_index=True)
+        if st.button("Salvar nova senha"):
 
-        novo.to_excel("mercados.xlsx",index=False)
+            usuarios.loc[
+                usuarios.usuario == usuario_sel,
+                "senha"
+            ] = nova
 
-        st.success("Mercado cadastrado")
-
-    st.dataframe(mercados)
-
-
-# ---------------- MAPA ----------------
-
-elif menu == "mapa":
-
-    st.header("Mapa")
-
-    if len(mercados)>0:
-
-        st.map(mercados[["lat","lon"]])
-
-
-# ---------------- RELATORIOS ----------------
-
-elif menu == "relatorios":
-
-    st.header("Relatórios")
-
-    st.dataframe(relatorio)
-
-
-# ---------------- FALTAS ----------------
-
-elif menu == "faltas":
-
-    st.header("Produtos não abastecidos")
-
-    st.dataframe(faltas)
-
-
-# ---------------- ALTERAR SENHA ----------------
-
-elif menu == "senha":
-
-    st.header("Alterar senha")
-
-    usuario_sel = st.selectbox("Usuário",usuarios["usuario"])
-
-    nova = st.text_input("Nova senha",type="password")
-
-    if st.button("Salvar nova senha"):
-
-        usuarios.loc[
-        usuarios.usuario==usuario_sel,
-        "senha"
-        ] = nova
-
-        usuarios.to_excel("usuarios.xlsx",index=False)
-
-        st.success("Senha atualizada")
+            usuarios.to_excel("usuarios.xlsx", index=False)
+            st.success("Senha atualizada")
