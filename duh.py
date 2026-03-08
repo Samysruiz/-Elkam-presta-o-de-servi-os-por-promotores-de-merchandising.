@@ -10,7 +10,7 @@ st.set_page_config(page_title="EL KAM", layout="centered")
 
 # logo
 try:
-    st.image("logo/el_kam_logo.png", width=200)
+    st.image("logo/el_kam_logo.png.png", width=200)
 except:
     pass
 
