@@ -3,14 +3,15 @@ import pandas as pd
 import os
 from datetime import date
 
-st.set_page_config(page_title="EL KAM", layout="wide")
+st.set_page_config(page_title="EL KAM",layout="wide")
 
-# ---------------- PASTA DE FOTOS ----------------
+# ---------------- PASTAS ----------------
 
-if not os.path.exists("fotos"):
-    os.makedirs("fotos")
+for pasta in ["fotos"]:
+    if not os.path.exists(pasta):
+        os.makedirs(pasta)
 
-# ---------------- CRIAR ARQUIVOS ----------------
+# ---------------- FUNÇÃO CRIAR ARQUIVO ----------------
 
 def garantir(nome,colunas):
 
@@ -19,6 +20,8 @@ def garantir(nome,colunas):
         df = pd.DataFrame(columns=colunas)
 
         df.to_excel(nome,index=False)
+
+# ---------------- GARANTIR ARQUIVOS ----------------
 
 garantir("usuarios.xlsx",["usuario","senha","tipo"])
 garantir("mercados.xlsx",["mercado","endereco","produto"])
@@ -97,8 +100,9 @@ if tipo == "admin":
     "📊 Dashboard",
     "👥 Funcionários",
     "🏪 Mercados",
-    "🗓 Criar Agenda",
-    "📑 Relatórios"
+    "🗓 Agenda Automática",
+    "📑 Relatórios",
+    "📸 Fotos"
     ]
     )
 
@@ -108,11 +112,9 @@ if tipo == "admin":
 
         st.header("Dashboard")
 
-        total = len(relatorio)
+        st.metric("Relatórios enviados",len(relatorio))
 
-        st.metric("Relatórios enviados",total)
-
-        if total > 0:
+        if len(relatorio)>0:
 
             graf = relatorio.groupby("status").size()
 
@@ -122,7 +124,7 @@ if tipo == "admin":
 
     elif menu == "👥 Funcionários":
 
-        st.header("Cadastrar funcionário")
+        st.header("Funcionários")
 
         usuario_novo = st.text_input("Usuário")
         senha_nova = st.text_input("Senha",type="password")
@@ -130,47 +132,52 @@ if tipo == "admin":
         if st.button("Cadastrar funcionário"):
 
             usuarios2 = pd.concat([
-
             usuarios,
-
             pd.DataFrame({
-
             "usuario":[usuario_novo],
             "senha":[senha_nova],
             "tipo":["funcionario"]
-
             })
-
             ],ignore_index=True)
 
             usuarios2.to_excel("usuarios.xlsx",index=False)
 
             st.success("Funcionário criado")
 
+        func_del = st.selectbox(
+        "Excluir funcionário",
+        usuarios[usuarios.tipo=="funcionario"]["usuario"]
+        )
+
+        if st.button("Excluir funcionário"):
+
+            usuarios = usuarios[
+            usuarios.usuario != func_del
+            ]
+
+            usuarios.to_excel("usuarios.xlsx",index=False)
+
+            st.success("Funcionário removido")
+
 # -------- MERCADOS --------
 
     elif menu == "🏪 Mercados":
 
-        st.header("Cadastrar mercado")
+        st.header("Mercados")
 
-        mercado = st.text_input("Nome do mercado")
+        mercado = st.text_input("Mercado")
         endereco = st.text_input("Endereço")
         produto = st.text_input("Produto")
 
-        if st.button("Cadastrar mercado"):
+        if st.button("Cadastrar"):
 
             novo = pd.concat([
-
             mercados,
-
             pd.DataFrame({
-
             "mercado":[mercado],
             "endereco":[endereco],
             "produto":[produto]
-
             })
-
             ],ignore_index=True)
 
             novo.to_excel("mercados.xlsx",index=False)
@@ -179,9 +186,9 @@ if tipo == "admin":
 
         st.dataframe(mercados)
 
-# -------- AGENDA --------
+# -------- AGENDA AUTOMATICA --------
 
-    elif menu == "🗓 Criar Agenda":
+    elif menu == "🗓 Agenda Automática":
 
         st.header("Criar agenda")
 
@@ -190,45 +197,63 @@ if tipo == "admin":
         usuarios[usuarios.tipo=="funcionario"]["usuario"]
         )
 
-        mercado = st.selectbox(
-        "Mercado",
-        mercados["mercado"]
+        mercados_sel = st.multiselect(
+        "Mercados",
+        mercados["mercado"].unique()
         )
 
-        produto = st.selectbox(
-        "Produto",
-        mercados["produto"]
-        )
+        tarefas=[]
 
-        if st.button("Adicionar tarefa"):
+        for m in mercados_sel:
 
-            agenda2 = pd.concat([
+            produtos = mercados[
+            mercados.mercado==m
+            ]["produto"]
 
-            agenda,
+            for p in produtos:
 
-            pd.DataFrame({
+                tarefas.append({
+                "funcionario":funcionario,
+                "mercado":m,
+                "produto":p
+                })
 
-            "funcionario":[funcionario],
-            "mercado":[mercado],
-            "produto":[produto]
+        if len(tarefas)>0:
 
-            })
+            df = pd.DataFrame(tarefas)
 
-            ],ignore_index=True)
+            st.dataframe(df)
 
-            agenda2.to_excel("agenda.xlsx",index=False)
+            if st.button("Salvar agenda"):
 
-            st.success("Agenda criada")
+                agenda2 = pd.concat([
+                agenda,
+                df
+                ],ignore_index=True)
 
-        st.dataframe(agenda)
+                agenda2.to_excel("agenda.xlsx",index=False)
+
+                st.success("Agenda criada")
 
 # -------- RELATORIOS --------
 
     elif menu == "📑 Relatórios":
 
-        st.header("Relatórios enviados")
+        st.header("Relatórios")
 
         st.dataframe(relatorio)
+
+# -------- FOTOS --------
+
+    elif menu == "📸 Fotos":
+
+        st.header("Fotos enviadas")
+
+        arquivos = os.listdir("fotos")
+
+        for f in arquivos:
+
+            st.image(f"fotos/{f}",width=300)
 
 # ================= FUNCIONARIO =================
 
@@ -244,27 +269,26 @@ else:
 
     for i,row in tarefas.iterrows():
 
-        mercado_info = mercados[
+        info = mercados[
         mercados.mercado==row.mercado
         ]
 
         endereco=""
 
-        if len(mercado_info)>0:
-
-            endereco = mercado_info.iloc[0]["endereco"]
+        if len(info)>0:
+            endereco = info.iloc[0]["endereco"]
 
         st.subheader(row.mercado)
 
-        st.write("📍 Endereço:",endereco)
+        st.write("📍",endereco)
 
-        # BOTÃO GOOGLE MAPS
-        if endereco != "":
-            mapa_url = "https://www.google.com/maps/search/" + endereco.replace(" ","+")
+        if endereco!="":
 
-            st.markdown(f"[🗺 Abrir rota no Google Maps]({mapa_url})")
+            mapa = "https://www.google.com/maps/search/" + endereco.replace(" ","+")
 
-        st.write("📦 Produto:",row.produto)
+            st.markdown(f"[🗺 Abrir rota no Google Maps]({mapa})")
+
+        st.write("Produto:",row.produto)
 
         status = st.radio(
         "Status",
@@ -277,33 +301,29 @@ else:
         key=f"foto{i}"
         )
 
-        caminho_foto=""
+        caminho=""
 
-        if foto is not None:
+        if foto:
 
-            caminho_foto = f"fotos/{usuario}_{i}.jpg"
+            caminho=f"fotos/{usuario}_{i}.jpg"
 
-            with open(caminho_foto,"wb") as f:
+            with open(caminho,"wb") as f:
                 f.write(foto.getbuffer())
 
         registros.append({
-
         "data":date.today(),
         "funcionario":usuario,
         "mercado":row.mercado,
         "produto":row.produto,
         "status":status,
-        "foto":caminho_foto
-
+        "foto":caminho
         })
 
     if st.button("Enviar relatório"):
 
         relatorio2 = pd.concat([
-
         relatorio,
         pd.DataFrame(registros)
-
         ],ignore_index=True)
 
         relatorio2.to_excel("relatorio.xlsx",index=False)
