@@ -105,7 +105,7 @@ if tipo == "admin":
 
         st.dataframe(mercados)
     
-     elif menu == "Agenda":
+    elif menu == "Agenda":
 
         st.header("Criar agenda")
 
