@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from datetime import date
 
-st.set_page_config(page_title="EL KAM",layout="wide")
+st.set_page_config(page_title="EL KAM", layout="wide")
 
 # ---------------- PASTAS ----------------
 
@@ -11,7 +11,7 @@ for pasta in ["fotos"]:
     if not os.path.exists(pasta):
         os.makedirs(pasta)
 
-# ---------------- FUNÇÃO CRIAR ARQUIVO ----------------
+# ---------------- CRIAR ARQUIVOS ----------------
 
 def garantir(nome,colunas):
 
@@ -20,8 +20,6 @@ def garantir(nome,colunas):
         df = pd.DataFrame(columns=colunas)
 
         df.to_excel(nome,index=False)
-
-# ---------------- GARANTIR ARQUIVOS ----------------
 
 garantir("usuarios.xlsx",["usuario","senha","tipo"])
 garantir("mercados.xlsx",["mercado","endereco","produto"])
@@ -163,209 +161,28 @@ if tipo == "admin":
 
     elif menu == "🏪 Mercados":
 
-    st.header("Gerenciar mercados")
+        st.header("Mercados")
 
-    # ---------- CADASTRAR ----------
+        mercado = st.text_input("Mercado")
+        endereco = st.text_input("Endereço")
+        produto = st.text_input("Produto")
 
-    st.subheader("Cadastrar novo mercado")
+        if st.button("Cadastrar"):
 
-    mercado = st.text_input("Nome do mercado")
-    endereco = st.text_input("Endereço")
-    produto = st.text_input("Produto")
+            novo = pd.concat([
+            mercados,
+            pd.DataFrame({
+            "mercado":[mercado],
+            "endereco":[endereco],
+            "produto":[produto]
+            })
+            ],ignore_index=True)
 
-    if st.button("Cadastrar mercado"):
+            novo.to_excel("mercados.xlsx",index=False)
 
-        novo = pd.concat([
-        mercados,
-        pd.DataFrame({
-        "mercado":[mercado],
-        "endereco":[endereco],
-        "produto":[produto]
-        })
-        ],ignore_index=True)
+            st.success("Mercado cadastrado")
 
-        novo.to_excel("mercados.xlsx",index=False)
-
-        st.success("Mercado cadastrado")
-
-    st.divider()
-
-    # ---------- EDITAR ----------
-
-    st.subheader("Editar mercado")
-
-    mercado_sel = st.selectbox(
-    "Selecionar mercado",
-    mercados["mercado"].unique()
-    )
-
-    dados = mercados[
-    mercados.mercado == mercado_sel
-    ]
-
-    endereco_edit = st.text_input(
-    "Endereço",
-    dados.iloc[0]["endereco"]
-    )
-
-    if st.button("Salvar endereço"):
-
-        mercados.loc[
-        mercados.mercado == mercado_sel,
-        "endereco"
-        ] = endereco_edit
-
-        mercados.to_excel("mercados.xlsx",index=False)
-
-        st.success("Endereço atualizado")
-
-    st.divider()
-
-    # ---------- PRODUTOS ----------
-
-    st.subheader("Produtos do mercado")
-
-    produtos = dados["produto"].tolist()
-
-    st.write(produtos)
-
-    novo_produto = st.text_input("Adicionar produto")
-
-    if st.button("Adicionar produto"):
-
-        novo = pd.concat([
-        mercados,
-        pd.DataFrame({
-        "mercado":[mercado_sel],
-        "endereco":[endereco_edit],
-        "produto":[novo_produto]
-        })
-        ],ignore_index=True)
-
-        novo.to_excel("mercados.xlsx",index=False)
-
-        st.success("Produto adicionado")
-
-    prod_del = st.selectbox(
-    "Excluir produto",
-    produtos
-    )
-
-    if st.button("Excluir produto"):
-
-        mercados = mercados[
-        ~((mercados.mercado == mercado_sel) &
-        (mercados.produto == prod_del))
-        ]
-
-        mercados.to_excel("mercados.xlsx",index=False)
-
-        st.success("Produto removido")
-
-    st.divider()
-
-    st.dataframe(mercados)
-
-    # ---------- CADASTRAR ----------
-
-    st.subheader("Cadastrar novo mercado")
-
-    mercado = st.text_input("Nome do mercado")
-    endereco = st.text_input("Endereço")
-    produto = st.text_input("Produto")
-
-    if st.button("Cadastrar mercado"):
-
-        novo = pd.concat([
-        mercados,
-        pd.DataFrame({
-        "mercado":[mercado],
-        "endereco":[endereco],
-        "produto":[produto]
-        })
-        ],ignore_index=True)
-
-        novo.to_excel("mercados.xlsx",index=False)
-
-        st.success("Mercado cadastrado")
-
-    st.divider()
-
-    # ---------- EDITAR ----------
-
-    st.subheader("Editar mercado")
-
-    mercado_sel = st.selectbox(
-    "Selecionar mercado",
-    mercados["mercado"].unique()
-    )
-
-    dados = mercados[
-    mercados.mercado == mercado_sel
-    ]
-
-    endereco_edit = st.text_input(
-    "Endereço",
-    dados.iloc[0]["endereco"]
-    )
-
-    if st.button("Salvar endereço"):
-
-        mercados.loc[
-        mercados.mercado == mercado_sel,
-        "endereco"
-        ] = endereco_edit
-
-        mercados.to_excel("mercados.xlsx",index=False)
-
-        st.success("Endereço atualizado")
-
-    st.divider()
-
-    # ---------- PRODUTOS ----------
-
-    st.subheader("Produtos do mercado")
-
-    produtos = dados["produto"].tolist()
-
-    st.write(produtos)
-
-    novo_produto = st.text_input("Adicionar produto")
-
-    if st.button("Adicionar produto"):
-
-        novo = pd.concat([
-        mercados,
-        pd.DataFrame({
-        "mercado":[mercado_sel],
-        "endereco":[endereco_edit],
-        "produto":[novo_produto]
-        })
-        ],ignore_index=True)
-
-        novo.to_excel("mercados.xlsx",index=False)
-
-        st.success("Produto adicionado")
-
-    prod_del = st.selectbox(
-    "Excluir produto",
-    produtos
-    )
-
-    if st.button("Excluir produto"):
-
-        mercados = mercados[
-        ~((mercados.mercado == mercado_sel) &
-        (mercados.produto == prod_del))
-        ]
-
-        mercados.to_excel("mercados.xlsx",index=False)
-
-        st.success("Produto removido")
-
-    st.divider()
-
-    st.dataframe(mercados)
+        st.dataframe(mercados)
 
 # -------- AGENDA AUTOMATICA --------
 
@@ -423,6 +240,12 @@ if tipo == "admin":
         st.header("Relatórios")
 
         st.dataframe(relatorio)
+
+        if st.button("Exportar Excel"):
+
+            relatorio.to_excel("relatorios_exportados.xlsx",index=False)
+
+            st.success("Arquivo exportado")
 
 # -------- FOTOS --------
 
