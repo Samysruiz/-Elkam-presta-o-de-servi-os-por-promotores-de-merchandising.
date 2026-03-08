@@ -158,7 +158,7 @@ if tipo=="admin":
 
     menu = st.sidebar.selectbox(
     "Menu",
-    ["funcionários","Dashboard","Mercados","Mapa","Relatórios","Falta de Produtos","Alterar Senha""]
+    ["funcionários","Dashboard","Mercados","Mapa","Relatórios","Falta de Produtos","Alterar Senha"]
     )
 #-----------------FUNCIONÁRIOS--------------
 elif menu == "Funcionários":
