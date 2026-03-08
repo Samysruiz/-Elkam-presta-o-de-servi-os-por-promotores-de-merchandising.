@@ -127,6 +127,31 @@ if not st.session_state.logado:
 
 tipo = st.session_state.tipo
 usuario = st.session_state.usuario
+#-------------------RECUPERAR SENHA-------------
+if st.sidebar.button("Recuperar senha"):
+
+    st.sidebar.write("Digite seu usuário")
+
+    user_rec = st.sidebar.text_input("Usuário para recuperar")
+
+    nova = st.sidebar.text_input("Nova senha", type="password")
+
+    if st.sidebar.button("Resetar senha"):
+
+        if user_rec in usuarios["usuario"].values:
+
+            usuarios.loc[
+                usuarios["usuario"]==user_rec,
+                "senha"
+            ] = nova
+
+            usuarios.to_excel("usuarios.xlsx",index=False)
+
+            st.sidebar.success("Senha atualizada")
+
+        else:
+
+            st.sidebar.error("Usuário não encontrado")
 # ================= ADMIN =================
 
 if tipo=="admin":
