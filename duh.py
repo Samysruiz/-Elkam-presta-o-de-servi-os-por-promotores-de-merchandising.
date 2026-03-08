@@ -341,7 +341,7 @@ else:
 
         st.success("Registro salvo")
 #------------------alterar senha------------------------
-elif menu == "Alterar Senha":
+ elif menu == "Alterar Senha":
 
     st.header("Alterar senha")
 
