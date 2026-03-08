@@ -5,7 +5,12 @@ from datetime import date
 
 st.set_page_config(page_title="EL KAM", layout="wide")
 
-# ---------------- ARQUIVOS ----------------
+# ---------------- PASTA DE FOTOS ----------------
+
+if not os.path.exists("fotos"):
+    os.makedirs("fotos")
+
+# ---------------- CRIAR ARQUIVOS ----------------
 
 def garantir(nome,colunas):
 
@@ -16,7 +21,7 @@ def garantir(nome,colunas):
         df.to_excel(nome,index=False)
 
 garantir("usuarios.xlsx",["usuario","senha","tipo"])
-garantir("mercados.xlsx",["mercado","produto"])
+garantir("mercados.xlsx",["mercado","endereco","produto"])
 garantir("agenda.xlsx",["funcionario","mercado","produto"])
 garantir("relatorio.xlsx",["data","funcionario","mercado","produto","status","foto"])
 
@@ -103,7 +108,15 @@ if tipo == "admin":
 
         st.header("Dashboard")
 
-        st.metric("Relatórios enviados",len(relatorio))
+        total = len(relatorio)
+
+        st.metric("Relatórios enviados",total)
+
+        if total > 0:
+
+            graf = relatorio.groupby("status").size()
+
+            st.bar_chart(graf)
 
 # -------- FUNCIONARIOS --------
 
@@ -114,7 +127,7 @@ if tipo == "admin":
         usuario_novo = st.text_input("Usuário")
         senha_nova = st.text_input("Senha",type="password")
 
-        if st.button("Cadastrar"):
+        if st.button("Cadastrar funcionário"):
 
             usuarios2 = pd.concat([
 
@@ -138,9 +151,10 @@ if tipo == "admin":
 
     elif menu == "🏪 Mercados":
 
-        st.header("Cadastrar mercado e produto")
+        st.header("Cadastrar mercado")
 
-        mercado = st.text_input("Mercado")
+        mercado = st.text_input("Nome do mercado")
+        endereco = st.text_input("Endereço")
         produto = st.text_input("Produto")
 
         if st.button("Cadastrar mercado"):
@@ -152,6 +166,7 @@ if tipo == "admin":
             pd.DataFrame({
 
             "mercado":[mercado],
+            "endereco":[endereco],
             "produto":[produto]
 
             })
@@ -229,9 +244,27 @@ else:
 
     for i,row in tarefas.iterrows():
 
+        mercado_info = mercados[
+        mercados.mercado==row.mercado
+        ]
+
+        endereco=""
+
+        if len(mercado_info)>0:
+
+            endereco = mercado_info.iloc[0]["endereco"]
+
         st.subheader(row.mercado)
 
-        st.write("Produto:",row.produto)
+        st.write("📍 Endereço:",endereco)
+
+        # BOTÃO GOOGLE MAPS
+        if endereco != "":
+            mapa_url = "https://www.google.com/maps/search/" + endereco.replace(" ","+")
+
+            st.markdown(f"[🗺 Abrir rota no Google Maps]({mapa_url})")
+
+        st.write("📦 Produto:",row.produto)
 
         status = st.radio(
         "Status",
@@ -244,6 +277,15 @@ else:
         key=f"foto{i}"
         )
 
+        caminho_foto=""
+
+        if foto is not None:
+
+            caminho_foto = f"fotos/{usuario}_{i}.jpg"
+
+            with open(caminho_foto,"wb") as f:
+                f.write(foto.getbuffer())
+
         registros.append({
 
         "data":date.today(),
@@ -251,7 +293,7 @@ else:
         "mercado":row.mercado,
         "produto":row.produto,
         "status":status,
-        "foto":str(foto)
+        "foto":caminho_foto
 
         })
 
@@ -267,6 +309,3 @@ else:
         relatorio2.to_excel("relatorio.xlsx",index=False)
 
         st.success("Relatório enviado")
-
-
-  
