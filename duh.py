@@ -45,7 +45,7 @@ col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     try:
         # Ajustado para o nome comum de arquivo
-        st.image("el_kam_logo.png", width=200) 
+        st.image("el_kam_logo.png.png", width=200) 
     except:
         st.write("Logo não encontrado")
 
