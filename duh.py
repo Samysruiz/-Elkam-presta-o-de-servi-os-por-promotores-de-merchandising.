@@ -286,10 +286,11 @@ else:
 
         st.write("📍",endereco)
 
-        if endereco!="":
-
-            mapa = "https://www.google.com/maps/search/" + endereco.replace(" ","+")
-
+       # Garante que 'endereco' seja texto e não esteja vazio
+if endereco:
+    mapa = "https://www.google.com/maps/search/?api=1&query=" + str(endereco).replace(" ", "+")
+else:
+    mapa = "#" # Ou um link padrão caso o endereço não exista
             st.markdown(f"[🗺 Abrir rota no Google Maps]({mapa})")
 
         st.write("Produto:",row.produto)
