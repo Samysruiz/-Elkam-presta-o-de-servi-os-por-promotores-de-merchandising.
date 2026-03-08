@@ -101,7 +101,7 @@ elif menu == "Funcionários":
 
         st.dataframe(funcionarios)
 
-    elif menu == "Mercados":
+elif menu == "Mercados":
 
         st.header("Mercados")
 
