@@ -38,5 +38,9 @@ with col2:
         st.warning("Aguardando carregamento do sistema...")
 
 st.divider()
+import os
+
+st.write(os.listdir())
+st.write(os.listdir("logotipo"))
 
 # ---------------- DADOS E LOGIN CONTINUAM ABAIXO ----------------
