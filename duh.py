@@ -256,7 +256,7 @@ if tipo == "admin":
                     st.success("Produto removido")
 
 # ---------- AGENDA ----------
- elif menu == "Agenda":
+    elif menu == "Agenda":
 
     st.header("Montar agenda da semana")
 
