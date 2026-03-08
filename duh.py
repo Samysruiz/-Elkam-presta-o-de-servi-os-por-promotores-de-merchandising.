@@ -58,26 +58,46 @@ if tipo == "admin":
 
     elif menu == "Funcionários":
 
-        st.header("Funcionários")
+    st.header("Funcionários")
 
-        with st.form("novo"):
-            nome = st.text_input("Nome")
-            user = st.text_input("Usuário")
-            senha_nova = st.text_input("Senha", type="password")
-            ok = st.form_submit_button("Cadastrar")
+    with st.form("novo"):
+        nome = st.text_input("Nome do funcionário")
+        user = st.text_input("Usuário de login")
+        senha_nova = st.text_input("Senha", type="password")
 
-            if ok:
-                funcionarios = pd.concat([funcionarios, pd.DataFrame({"funcionario":[nome]})])
+        ok = st.form_submit_button("Cadastrar")
+
+        if ok:
+
+            # verificar duplicidade
+            nome_existe = nome.lower() in funcionarios["funcionario"].str.lower().values
+            user_existe = user.lower() in usuarios["usuario"].str.lower().values
+
+            if nome_existe or user_existe:
+
+                st.error("⚠ Funcionário ou usuário já cadastrado!")
+
+            else:
+
+                funcionarios = pd.concat([
+                    funcionarios,
+                    pd.DataFrame({"funcionario":[nome]})
+                ], ignore_index=True)
+
                 funcionarios.to_excel("funcionarios.xlsx", index=False)
 
-                usuarios = pd.concat([usuarios, pd.DataFrame({
-                    "usuario":[user],
-                    "senha":[senha_nova],
-                    "tipo":["funcionario"]
-                })])
+                usuarios = pd.concat([
+                    usuarios,
+                    pd.DataFrame({
+                        "usuario":[user],
+                        "senha":[senha_nova],
+                        "tipo":["funcionario"]
+                    })
+                ], ignore_index=True)
+
                 usuarios.to_excel("usuarios.xlsx", index=False)
 
-                st.success("Funcionário criado")
+                st.success("✅ Funcionário cadastrado com sucesso")
 
         st.dataframe(funcionarios)
 
