@@ -258,7 +258,7 @@ if tipo == "admin":
 # ---------- AGENDA ----------
     elif menu == "Agenda":
 
-    st.header("Montar agenda da semana")
+     st.header("Montar agenda da semana")
 
     funcionarios = pd.read_sql(
     "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
