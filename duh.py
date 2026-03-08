@@ -21,26 +21,33 @@ st.markdown("""
     background-color:black;
 }
 
+/* títulos */
+
 h1,h2,h3{
     color:#ff2b2b;
 }
 
+/* labels (Usuário / Senha) */
+
 label{
     color:white !important;
+    font-weight:600;
 }
 
-/* campo de texto */
+/* campos de texto */
 
-.stTextInput input{
+input[type="text"], input[type="password"]{
     background-color:white !important;
     color:black !important;
 }
 
-/* placeholder */
+/* texto digitado */
 
-.stTextInput input::placeholder{
+input{
     color:black !important;
 }
+
+/* botão */
 
 .stButton button{
     background-color:#ff2b2b;
