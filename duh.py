@@ -35,12 +35,14 @@ label{
 
 # ---------------- LOGO SE EXISTIR ----------------
 
-logo = "el_kam_logo.png"
+import os
 
-if os.path.exists(logo):
-    st.image(logo,use_container_width=True)
+logo_path = "el_kam_logo.png"
 
-st.title("Sistema EL KAM")
+if os.path.exists(logo_path):
+    st.image(logo_path, use_container_width=True)
+else:
+    st.warning("Logo não encontrada")
 
 # ---------------- FUNÇÃO CRIAR PLANILHA ----------------
 
