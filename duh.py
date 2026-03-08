@@ -227,7 +227,7 @@ elif menu == "Mapa":
         if "lat" in mercados.columns:
             st.map(mercados[["lat","lon"]])
 
-    elif menu == "Relatórios":
+elif menu == "Relatórios":
 
         st.header("Relatórios")
 
