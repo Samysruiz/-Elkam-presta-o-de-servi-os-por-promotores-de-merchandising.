@@ -38,15 +38,14 @@ label{
 
 # ---------------- LOGO ----------------
 
+import os
+
 logo_path = "el_kam_logo.png"
 
-col1,col2,col3 = st.columns([1,2,1])
-
-with col2:
-    if os.path.exists(logo_path):
-        st.image(logo_path,use_container_width=True)
-
-st.title("Sistema EL KAM")
+if os.path.exists(logo_path):
+    st.image(logo_path, use_container_width=True)
+else:
+    st.warning("Logo não encontrada")
 
 # ---------------- FUNÇÃO CARREGAR ----------------
 
