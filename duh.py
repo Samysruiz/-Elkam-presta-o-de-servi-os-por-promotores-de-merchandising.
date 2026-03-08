@@ -43,7 +43,7 @@ label{
 col1,col2,col3 = st.columns([1,2,1])
 
 with col2:
-    st.image("logo/el_kam_logo.png",width=200)
+    st.image("logo/el_kam_logo.png.png",width=200)
 
     st.markdown(
         "<h1 style='text-align:center;color:#ff2b2b;'>Sistema EL KAM</h1>",
