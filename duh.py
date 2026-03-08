@@ -161,7 +161,7 @@ if tipo == "admin":
 
 # -------- MERCADOS --------
 
-   elif menu == "🏪 Mercados":
+    elif menu == "🏪 Mercados":
 
     st.header("Gerenciar mercados")
 
