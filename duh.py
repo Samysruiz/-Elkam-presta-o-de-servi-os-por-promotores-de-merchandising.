@@ -30,7 +30,7 @@ h1,h2,h3{
 /* labels (Usuário / Senha) */
 
 label{
-    color:white !important;
+    color:black!important;
     font-weight:600;
 }
 
