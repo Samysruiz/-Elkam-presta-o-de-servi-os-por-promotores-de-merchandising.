@@ -104,8 +104,8 @@ if tipo == "admin":
                 st.success("Cadastrado")
 
         st.dataframe(mercados)
-
-    elif menu == "Agenda":
+    
+        elif menu == "Agenda":
 
     st.header("Criar agenda")
 
@@ -140,26 +140,21 @@ if tipo == "admin":
                     "item": p
                 })
 
-        agenda = pd.concat(
-            [agenda, pd.DataFrame(novas_tarefas)]
-        )
+        if novas_tarefas:
 
-        agenda.to_excel("agenda.xlsx", index=False)
+            agenda = pd.concat(
+                [agenda, pd.DataFrame(novas_tarefas)],
+                ignore_index=True
+            )
 
-        st.success("Agenda criada com sucesso")
-                agenda = pd.concat([agenda,pd.DataFrame({
-                    "funcionario":[func],
-                    "dia":[dia],
-                    "mercado":[mercado],
-                    "item":[item]
-                })])
+            agenda.to_excel("agenda.xlsx", index=False)
 
-                agenda.to_excel("agenda.xlsx", index=False)
+            st.success("Agenda criada com sucesso")
 
-                st.success("Adicionado")
+    st.dataframe(agenda)
 
-        st.dataframe(agenda)
-
+    
+    
     elif menu == "Mapa":
 
         st.header("Mapa de mercados")
