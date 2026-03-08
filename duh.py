@@ -46,7 +46,6 @@ if os.path.exists(logo_path):
     st.image(logo_path, use_container_width=True)
 else:
     st.warning("Logo não encontrada")
-
 # ---------------- FUNÇÃO CARREGAR ----------------
 
 def carregar(nome):
