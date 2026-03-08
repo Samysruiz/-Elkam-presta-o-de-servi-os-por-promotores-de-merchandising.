@@ -21,15 +21,14 @@ funcionarios = pd.read_excel("funcionarios.xlsx")
 mercados = pd.read_excel("mercados.xlsx")
 agenda = pd.read_excel("agenda.xlsx")
 relatorio = pd.read_excel("relatorio.xlsx")
+with st.sidebar.form("login_form"):
 
-usuario = st.sidebar.text_input("Usuário")
-senha = st.sidebar.text_input("Senha", type="password")
+    st.subheader("Login")
 
-login = usuarios[(usuarios.usuario == usuario) & (usuarios.senha == senha)]
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
 
-if len(login) == 0:
-    st.warning("Faça login")
-    st.stop()
+    entrar = st.form_submit_button("Entrar")
 
 tipo = login.iloc[0]["tipo"]
 
