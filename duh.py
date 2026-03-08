@@ -40,17 +40,14 @@ label{
 
 # ---------------- LOGO + TITULO ----------------
 
-col1,col2,col3 = st.columns([1,2,1])
+import os
 
-with col2:
-    st.image("logo/el_kam_logo.png",width=200)
+logo_path = "logo/el_kam_logo.png"
 
-    st.markdown(
-        "<h1 style='text-align:center;color:#ff2b2b;'>Sistema EL KAM</h1>",
-        unsafe_allow_html=True
-    )
-
-st.divider()
+if os.path.exists(logo_path):
+    st.image(logo_path, width=200)
+else:
+    st.warning("Logo não encontrado")
 
 # ---------------- DADOS ----------------
 
