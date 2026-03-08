@@ -3,79 +3,9 @@ import pandas as pd
 import os
 from datetime import date
 
-# ---------------- CONFIG ----------------
-
 st.set_page_config(page_title="EL KAM", layout="wide")
 
-# ---------------- CSS PROFISSIONAL ----------------
-
-st.markdown("""
-<style>
-
-/* fundo geral */
-
-.stApp{
-background-color:black;
-}
-
-/* sidebar */
-
-section[data-testid="stSidebar"]{
-background-color:#111;
-}
-
-/* texto menu */
-
-section[data-testid="stSidebar"] *{
-color:white;
-font-weight:600;
-}
-
-/* selectbox menu */
-
-div[data-baseweb="select"]{
-background-color:#ff2b2b;
-border-radius:8px;
-}
-
-/* hover */
-
-div[data-baseweb="select"]:hover{
-background-color:#cc0000;
-}
-
-/* títulos */
-
-h1,h2,h3{
-color:#ff2b2b;
-}
-
-/* inputs */
-
-input{
-background-color:white !important;
-color:black !important;
-}
-
-/* botões */
-
-.stButton button{
-background-color:#ff2b2b;
-color:white;
-border-radius:6px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# ---------------- LOGO ----------------
-
-if os.path.exists("el_kam_logo.png"):
-    st.image("el_kam_logo.png",use_container_width=True)
-
-st.title("Sistema EL KAM")
-
-# ---------------- CRIAR ARQUIVOS ----------------
+# ---------------- ARQUIVOS ----------------
 
 def garantir(nome,colunas):
 
@@ -86,29 +16,23 @@ def garantir(nome,colunas):
         df.to_excel(nome,index=False)
 
 garantir("usuarios.xlsx",["usuario","senha","tipo"])
-garantir("funcionarios.xlsx",["funcionario"])
-garantir("mercados.xlsx",["mercado","item","lat","lon"])
-garantir("agenda.xlsx",["funcionario","dia","mercado","item"])
-garantir("relatorio.xlsx",["data","funcionario","mercado","item","status"])
-garantir("faltas.xlsx",["data","funcionario","mercado","produto","motivo"])
+garantir("mercados.xlsx",["mercado","produto"])
+garantir("agenda.xlsx",["funcionario","mercado","produto"])
+garantir("relatorio.xlsx",["data","funcionario","mercado","produto","status","foto"])
 
 usuarios = pd.read_excel("usuarios.xlsx")
-funcionarios = pd.read_excel("funcionarios.xlsx")
 mercados = pd.read_excel("mercados.xlsx")
 agenda = pd.read_excel("agenda.xlsx")
 relatorio = pd.read_excel("relatorio.xlsx")
-faltas = pd.read_excel("faltas.xlsx")
 
 # ---------------- ADMIN PADRÃO ----------------
 
 if usuarios.empty:
 
     usuarios = pd.DataFrame({
-
     "usuario":["admin"],
     "senha":["123"],
     "tipo":["admin"]
-
     })
 
     usuarios.to_excel("usuarios.xlsx",index=False)
@@ -123,7 +47,6 @@ if not st.session_state.logado:
     with st.sidebar.form("login"):
 
         usuario = st.text_input("Usuário")
-
         senha = st.text_input("Senha",type="password")
 
         entrar = st.form_submit_button("Entrar")
@@ -151,7 +74,6 @@ if not st.session_state.logado:
 
 usuario = st.session_state.usuario
 tipo = st.session_state.tipo
-st.sidebar.write("Logado como:", tipo)
 
 # ---------------- LOGOUT ----------------
 
@@ -160,130 +82,191 @@ if st.sidebar.button("Sair"):
     st.session_state.logado=False
     st.rerun()
 
-# ================= MENU ADMIN =================
-
-# ================= MENU ADMIN =================
+# ================= ADMIN =================
 
 if tipo == "admin":
 
-    menu_opcoes = {
-        "📊 Dashboard":"dashboard",
-        "👥 Funcionários":"funcionarios",
-        "🏪 Mercados":"mercados",
-        "🗺️ Mapa":"mapa",
-        "📑 Relatórios":"relatorios",
-        "📦 Falta de Produtos":"faltas",
-        "🔑 Alterar Senha":"senha"
-    }
-
-    escolha = st.sidebar.selectbox(
-        "Menu",
-        list(menu_opcoes.keys())
+    menu = st.sidebar.selectbox(
+    "Menu",
+    [
+    "📊 Dashboard",
+    "👥 Funcionários",
+    "🏪 Mercados",
+    "🗓 Criar Agenda",
+    "📑 Relatórios"
+    ]
     )
 
-    menu = menu_opcoes[escolha]
+# -------- DASHBOARD --------
 
-    # ---------------- DASHBOARD ----------------
-    if menu == "dashboard":
+    if menu == "📊 Dashboard":
 
         st.header("Dashboard")
-        st.metric("Tarefas registradas", len(relatorio))
 
+        st.metric("Relatórios enviados",len(relatorio))
 
-    # ---------------- FUNCIONARIOS ----------------
-    elif menu == "funcionarios":
+# -------- FUNCIONARIOS --------
+
+    elif menu == "👥 Funcionários":
 
         st.header("Cadastrar funcionário")
 
-        nome = st.text_input("Nome")
         usuario_novo = st.text_input("Usuário")
-        senha_nova = st.text_input("Senha", type="password")
+        senha_nova = st.text_input("Senha",type="password")
 
         if st.button("Cadastrar"):
 
-            if usuario_novo in usuarios["usuario"].values:
-                st.error("Usuário já existe")
+            usuarios2 = pd.concat([
 
-            else:
-                usuarios2 = pd.concat([
-                    usuarios,
-                    pd.DataFrame({
-                        "usuario":[usuario_novo],
-                        "senha":[senha_nova],
-                        "tipo":["funcionario"]
-                    })
-                ], ignore_index=True)
+            usuarios,
 
-                usuarios2.to_excel("usuarios.xlsx", index=False)
-                st.success("Funcionário criado")
+            pd.DataFrame({
 
+            "usuario":[usuario_novo],
+            "senha":[senha_nova],
+            "tipo":["funcionario"]
 
-    # ---------------- MERCADOS ----------------
-    elif menu == "mercados":
+            })
 
-        st.header("Cadastrar mercado")
+            ],ignore_index=True)
+
+            usuarios2.to_excel("usuarios.xlsx",index=False)
+
+            st.success("Funcionário criado")
+
+# -------- MERCADOS --------
+
+    elif menu == "🏪 Mercados":
+
+        st.header("Cadastrar mercado e produto")
 
         mercado = st.text_input("Mercado")
-        item = st.text_input("Produto")
-
-        lat = st.number_input("Latitude")
-        lon = st.number_input("Longitude")
+        produto = st.text_input("Produto")
 
         if st.button("Cadastrar mercado"):
 
             novo = pd.concat([
-                mercados,
-                pd.DataFrame({
-                    "mercado":[mercado],
-                    "item":[item],
-                    "lat":[lat],
-                    "lon":[lon]
-                })
-            ], ignore_index=True)
 
-            novo.to_excel("mercados.xlsx", index=False)
+            mercados,
+
+            pd.DataFrame({
+
+            "mercado":[mercado],
+            "produto":[produto]
+
+            })
+
+            ],ignore_index=True)
+
+            novo.to_excel("mercados.xlsx",index=False)
+
             st.success("Mercado cadastrado")
 
         st.dataframe(mercados)
 
+# -------- AGENDA --------
 
-    # ---------------- MAPA ----------------
-    elif menu == "mapa":
+    elif menu == "🗓 Criar Agenda":
 
-        st.header("Mapa")
+        st.header("Criar agenda")
 
-        if len(mercados) > 0:
-            st.map(mercados[["lat","lon"]])
+        funcionario = st.selectbox(
+        "Funcionário",
+        usuarios[usuarios.tipo=="funcionario"]["usuario"]
+        )
 
+        mercado = st.selectbox(
+        "Mercado",
+        mercados["mercado"]
+        )
 
-    # ---------------- RELATORIOS ----------------
-    elif menu == "relatorios":
+        produto = st.selectbox(
+        "Produto",
+        mercados["produto"]
+        )
 
-        st.header("Relatórios")
+        if st.button("Adicionar tarefa"):
+
+            agenda2 = pd.concat([
+
+            agenda,
+
+            pd.DataFrame({
+
+            "funcionario":[funcionario],
+            "mercado":[mercado],
+            "produto":[produto]
+
+            })
+
+            ],ignore_index=True)
+
+            agenda2.to_excel("agenda.xlsx",index=False)
+
+            st.success("Agenda criada")
+
+        st.dataframe(agenda)
+
+# -------- RELATORIOS --------
+
+    elif menu == "📑 Relatórios":
+
+        st.header("Relatórios enviados")
+
         st.dataframe(relatorio)
 
+# ================= FUNCIONARIO =================
 
-    # ---------------- FALTA PRODUTOS ----------------
-    elif menu == "faltas":
+else:
 
-        st.header("Produtos não abastecidos")
-        st.dataframe(faltas)
+    st.header("Minha agenda")
+
+    tarefas = agenda[
+    agenda.funcionario==usuario
+    ]
+
+    registros=[]
+
+    for i,row in tarefas.iterrows():
+
+        st.subheader(row.mercado)
+
+        st.write("Produto:",row.produto)
+
+        status = st.radio(
+        "Status",
+        ["Abastecido","Falta"],
+        key=i
+        )
+
+        foto = st.file_uploader(
+        "Foto da gôndola",
+        key=f"foto{i}"
+        )
+
+        registros.append({
+
+        "data":date.today(),
+        "funcionario":usuario,
+        "mercado":row.mercado,
+        "produto":row.produto,
+        "status":status,
+        "foto":str(foto)
+
+        })
+
+    if st.button("Enviar relatório"):
+
+        relatorio2 = pd.concat([
+
+        relatorio,
+        pd.DataFrame(registros)
+
+        ],ignore_index=True)
+
+        relatorio2.to_excel("relatorio.xlsx",index=False)
+
+        st.success("Relatório enviado")
 
 
-    # ---------------- ALTERAR SENHA ----------------
-    elif menu == "senha":
-
-        st.header("Alterar senha")
-
-        usuario_sel = st.selectbox("Usuário", usuarios["usuario"])
-        nova = st.text_input("Nova senha", type="password")
-
-        if st.button("Salvar nova senha"):
-
-            usuarios.loc[
-                usuarios.usuario == usuario_sel,
-                "senha"
-            ] = nova
-
-            usuarios.to_excel("usuarios.xlsx", index=False)
-            st.success("Senha atualizada")
+  
