@@ -1,12 +1,10 @@
-import streamlit as st
+
+
+         
+       import streamlit as st
 import pandas as pd
 import os
 from datetime import date
-try:
-    from streamlit_js_eval import get_geolocation
-    GEO = True
-except:
-    GEO = False
 
 # ---------------- CONFIG ----------------
 
@@ -21,33 +19,18 @@ st.markdown("""
     background-color:black;
 }
 
-/* títulos */
-
 h1,h2,h3{
     color:#ff2b2b;
 }
 
-/* labels (Usuário / Senha) */
-
 label{
-    color:black!important;
-    font-weight:600;
+    color:white !important;
 }
 
-/* campos de texto */
-
-input[type="text"], input[type="password"]{
+input{
     background-color:white !important;
     color:black !important;
 }
-
-/* texto digitado */
-
-input{
-    color:black !important;
-}
-
-/* botão */
 
 .stButton button{
     background-color:#ff2b2b;
@@ -57,20 +40,16 @@ input{
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- LOGO SE EXISTIR ----------------
+# ---------------- LOGO ----------------
 
-import os
+if os.path.exists("el_kam_logo.png"):
+    st.image("el_kam_logo.png",use_container_width=True)
 
-logo_path = "el_kam_logo.png"
+st.title("Sistema EL KAM")
 
-if os.path.exists(logo_path):
-    st.image(logo_path, use_container_width=True)
-else:
-    st.warning("Logo não encontrada")
+# ---------------- FUNÇÃO GARANTIR ARQUIVOS ----------------
 
-# ---------------- FUNÇÃO CRIAR PLANILHA ----------------
-
-def garantir_arquivo(nome,colunas):
+def garantir(nome,colunas):
 
     if not os.path.exists(nome):
 
@@ -78,37 +57,14 @@ def garantir_arquivo(nome,colunas):
 
         df.to_excel(nome,index=False)
 
-# ---------------- GARANTIR ARQUIVOS ----------------
+# ---------------- CRIAR PLANILHAS ----------------
 
-garantir_arquivo(
-"usuarios.xlsx",
-["usuario","senha","tipo"]
-)
-
-garantir_arquivo(
-"funcionarios.xlsx",
-["funcionario"]
-)
-
-garantir_arquivo(
-"mercados.xlsx",
-["mercado","item","lat","lon"]
-)
-
-garantir_arquivo(
-"agenda.xlsx",
-["funcionario","dia","mercado","item"]
-)
-
-garantir_arquivo(
-"relatorio.xlsx",
-["data","funcionario","mercado","item","status"]
-)
-
-garantir_arquivo(
-"faltas.xlsx",
-["data","funcionario","mercado","produto","motivo"]
-)
+garantir("usuarios.xlsx",["usuario","senha","tipo"])
+garantir("funcionarios.xlsx",["funcionario"])
+garantir("mercados.xlsx",["mercado","item","lat","lon"])
+garantir("agenda.xlsx",["funcionario","dia","mercado","item"])
+garantir("relatorio.xlsx",["data","funcionario","mercado","item","status"])
+garantir("faltas.xlsx",["data","funcionario","mercado","produto","motivo"])
 
 # ---------------- CARREGAR ----------------
 
@@ -118,6 +74,20 @@ mercados = pd.read_excel("mercados.xlsx")
 agenda = pd.read_excel("agenda.xlsx")
 relatorio = pd.read_excel("relatorio.xlsx")
 faltas = pd.read_excel("faltas.xlsx")
+
+# ---------------- CRIAR ADMIN AUTOMÁTICO ----------------
+
+if usuarios.empty:
+
+    usuarios = pd.DataFrame({
+
+        "usuario":["admin"],
+        "senha":["123"],
+        "tipo":["admin"]
+
+    })
+
+    usuarios.to_excel("usuarios.xlsx",index=False)
 
 # ---------------- LOGIN ----------------
 
@@ -163,9 +133,7 @@ if tipo=="admin":
 
         total = len(relatorio)
 
-        feitos = len(
-        relatorio[relatorio["status"]=="feito"]
-        )
+        feitos = len(relatorio[relatorio["status"]=="feito"])
 
         c1,c2 = st.columns(2)
 
@@ -185,7 +153,6 @@ if tipo=="admin":
             item = st.text_input("Produto")
 
             lat = st.number_input("Latitude")
-
             lon = st.number_input("Longitude")
 
             cadastrar = st.form_submit_button("Cadastrar")
@@ -212,37 +179,25 @@ if tipo=="admin":
 
     elif menu=="Mapa":
 
-        st.header("Mapa dos mercados")
+        st.header("Mapa")
 
         if len(mercados)>0:
 
             st.map(mercados[["lat","lon"]])
 
-        else:
-
-            st.info("Nenhum mercado cadastrado")
-
 # ---------------- RELATORIOS ----------------
 
     elif menu=="Relatórios":
 
-        st.header("Relatórios")
-
         st.dataframe(relatorio)
 
-# ---------------- FALTA PRODUTOS ----------------
+# ---------------- FALTAS ----------------
 
     elif menu=="Falta de Produtos":
 
         st.header("Produtos não abastecidos")
 
         st.dataframe(faltas)
-
-        if len(faltas)>0:
-
-            ranking = faltas.groupby("produto").size()
-
-            st.bar_chart(ranking)
 
 # ================= FUNCIONARIO =================
 
@@ -252,69 +207,30 @@ else:
 
     tarefas = agenda[agenda.funcionario==usuario]
 
-# -------- LOCALIZAÇÃO --------
-
-    st.subheader("Minha localização")
-
-    loc = get_geolocation()
-
-    if loc:
-
-        lat = loc["coords"]["latitude"]
-
-        lon = loc["coords"]["longitude"]
-
-        pos = pd.DataFrame({
-        "lat":[lat],
-        "lon":[lon]
-        })
-
-        st.map(pos)
-
-# -------- TAREFAS --------
-
     registros_falta=[]
 
     for i,row in tarefas.iterrows():
 
-        st.markdown(
-        f"### {row.mercado} - {row.item}"
-        )
+        st.markdown(f"### {row.mercado} - {row.item}")
 
-        abastecido = st.checkbox(
-        "Produto abastecido",
-        key=f"a{i}"
-        )
+        abastecido = st.checkbox("Produto abastecido",key=f"a{i}")
 
-        nao = st.checkbox(
-        "Não foi possível abastecer",
-        key=f"n{i}"
-        )
+        nao = st.checkbox("Não foi possível abastecer",key=f"n{i}")
 
         if nao:
 
             motivo = st.selectbox(
             "Motivo",
-            [
-            "Produto em falta",
-            "Produto não entregue",
-            "Mercado não autorizou",
-            "Sem espaço",
-            "Outro"
-            ],
+            ["Produto em falta","Produto não entregue","Sem espaço","Outro"],
             key=f"m{i}"
             )
 
             registros_falta.append({
 
             "data":date.today(),
-
             "funcionario":usuario,
-
             "mercado":row.mercado,
-
             "produto":row.item,
-
             "motivo":motivo
 
             })
@@ -322,23 +238,16 @@ else:
         if abastecido:
 
             relatorio = pd.concat([
-
             relatorio,
-
             pd.DataFrame({
 
             "data":[date.today()],
-
             "funcionario":[usuario],
-
             "mercado":[row.mercado],
-
             "item":[row.item],
-
             "status":["feito"]
 
             })
-
             ])
 
     if st.button("Salvar"):
@@ -350,7 +259,6 @@ else:
             faltas2 = pd.concat([
 
             faltas,
-
             pd.DataFrame(registros_falta)
 
             ],ignore_index=True)
