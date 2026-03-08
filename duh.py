@@ -105,53 +105,53 @@ if tipo == "admin":
 
         st.dataframe(mercados)
     
-     elif menu == "Agenda":
+         elif menu == "Agenda":
 
-    st.header("Criar agenda")
+        st.header("Criar agenda")
 
-    func = st.selectbox("Funcionário", funcionarios.funcionario)
+        func = st.selectbox("Funcionário", funcionarios.funcionario)
 
-    dia = st.selectbox(
-        "Dia",
-        ["segunda","terca","quarta","quinta","sexta"]
-    )
+        dia = st.selectbox(
+            "Dia",
+            ["segunda","terca","quarta","quinta","sexta"]
+        )
 
-    mercados_sel = st.multiselect(
-        "Mercados",
-        mercados.mercado.unique()
-    )
+        mercados_sel = st.multiselect(
+            "Mercados",
+            mercados.mercado.unique()
+        )
 
-    produtos_sel = st.multiselect(
-        "Produtos",
-        mercados.item.unique()
-    )
+        produtos_sel = st.multiselect(
+            "Produtos",
+            mercados.item.unique()
+        )
 
-    if st.button("Gerar agenda"):
+        if st.button("Gerar agenda"):
 
-        novas_tarefas = []
+            novas_tarefas = []
 
-        for m in mercados_sel:
-            for p in produtos_sel:
+            for m in mercados_sel:
+                for p in produtos_sel:
 
-                novas_tarefas.append({
-                    "funcionario": func,
-                    "dia": dia,
-                    "mercado": m,
-                    "item": p
-                })
+                    novas_tarefas.append({
+                        "funcionario": func,
+                        "dia": dia,
+                        "mercado": m,
+                        "item": p
+                    })
 
-        if novas_tarefas:
+            if novas_tarefas:
 
-            agenda = pd.concat(
-                [agenda, pd.DataFrame(novas_tarefas)],
-                ignore_index=True
-            )
+                agenda = pd.concat(
+                    [agenda, pd.DataFrame(novas_tarefas)],
+                    ignore_index=True
+                )
 
-            agenda.to_excel("agenda.xlsx", index=False)
+                agenda.to_excel("agenda.xlsx", index=False)
 
-            st.success("Agenda criada com sucesso")
+                st.success("Agenda criada com sucesso")
 
-    st.dataframe(agenda)
+        st.dataframe(agenda)
 
     
     
