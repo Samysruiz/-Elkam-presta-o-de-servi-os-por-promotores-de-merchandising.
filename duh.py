@@ -88,8 +88,6 @@ if usuarios.empty:
 
 # ---------------- LOGIN ----------------
 
-# ---------------- LOGIN ----------------
-
 if "logado" not in st.session_state:
     st.session_state.logado = False
     st.session_state.tipo = None
@@ -135,8 +133,46 @@ if tipo=="admin":
 
     menu = st.sidebar.selectbox(
     "Menu",
-    ["Dashboard","Mercados","Mapa","Relatórios","Falta de Produtos"]
+    ["funcionários","Dashboard","Mercados","Mapa","Relatórios","Falta de Produtos,"Alterar Senha""]
     )
+#-----------------FUNCIONÁRIOS--------------
+elif menu == "Funcionários":
+
+    st.header("Cadastrar funcionário")
+
+    nome = st.text_input("Nome do funcionário")
+    usuario_novo = st.text_input("Usuário")
+    senha_nova = st.text_input("Senha", type="password")
+
+    if st.button("Cadastrar funcionário"):
+
+        if usuario_novo in usuarios["usuario"].values:
+
+            st.error("Usuário já existe")
+
+        else:
+
+            usuarios2 = pd.concat([
+                usuarios,
+                pd.DataFrame({
+                    "usuario":[usuario_novo],
+                    "senha":[senha_nova],
+                    "tipo":["funcionario"]
+                })
+            ],ignore_index=True)
+
+            usuarios2.to_excel("usuarios.xlsx",index=False)
+
+            funcionarios2 = pd.concat([
+                funcionarios,
+                pd.DataFrame({
+                    "funcionario":[usuario_novo]
+                })
+            ],ignore_index=True)
+
+            funcionarios2.to_excel("funcionarios.xlsx",index=False)
+
+            st.success("Funcionário cadastrado")
 
 # ---------------- DASHBOARD ----------------
 
@@ -279,3 +315,42 @@ else:
             faltas2.to_excel("faltas.xlsx",index=False)
 
         st.success("Registro salvo")
+#------------------alterar senha------------------------
+elif menu == "Alterar Senha":
+
+    st.header("Alterar senha")
+
+    usuario_sel = st.selectbox(
+        "Usuário",
+        usuarios["usuario"]
+    )
+
+    nova_senha = st.text_input(
+        "Nova senha",
+        type="password"
+    )
+
+    confirmar = st.text_input(
+        "Confirmar senha",
+        type="password"
+    )
+
+    if st.button("Salvar nova senha"):
+
+        if nova_senha != confirmar:
+
+            st.error("As senhas não coincidem")
+
+        else:
+
+            usuarios.loc[
+                usuarios["usuario"] == usuario_sel,
+                "senha"
+            ] = nova_senha
+
+            usuarios.to_excel(
+                "usuarios.xlsx",
+                index=False
+            )
+
+            st.success("Senha atualizada")
