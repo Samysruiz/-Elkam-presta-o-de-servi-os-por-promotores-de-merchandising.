@@ -88,31 +88,47 @@ if usuarios.empty:
 
 # ---------------- LOGIN ----------------
 
-with st.sidebar.form("login"):
+# ---------------- LOGIN ----------------
 
-    st.subheader("Login")
+if "logado" not in st.session_state:
+    st.session_state.logado = False
+    st.session_state.tipo = None
+    st.session_state.usuario = None
 
-    usuario = st.text_input("Usuário")
-    senha = st.text_input("Senha",type="password")
+if not st.session_state.logado:
 
-    entrar = st.form_submit_button("Entrar")
+    with st.sidebar.form("login"):
 
-if not entrar:
+        st.subheader("Login")
+
+        usuario = st.text_input("Usuário")
+        senha = st.text_input("Senha", type="password")
+
+        entrar = st.form_submit_button("Entrar")
+
+        if entrar:
+
+            login = usuarios[
+                (usuarios.usuario == usuario) &
+                (usuarios.senha == senha)
+            ]
+
+            if len(login) > 0:
+
+                st.session_state.logado = True
+                st.session_state.usuario = usuario
+                st.session_state.tipo = login.iloc[0]["tipo"]
+
+                st.rerun()
+
+            else:
+
+                st.error("Usuário ou senha incorretos")
+
     st.stop()
 
-login = usuarios[
-(usuarios.usuario==usuario) &
-(usuarios.senha==senha)
-]
-
-if len(login)==0:
-
-    st.error("Usuário ou senha incorretos")
-
-    st.stop()
-
-tipo = login.iloc[0]["tipo"]
-
+tipo = st.session_state.tipo
+usuario = st.session_state.usuario
 # ================= ADMIN =================
 
 if tipo=="admin":
