@@ -7,31 +7,62 @@ from datetime import date
 
 st.set_page_config(page_title="EL KAM", layout="wide")
 
-# ---------------- ESTILO ----------------
+# ---------------- CSS PROFISSIONAL ----------------
 
 st.markdown("""
 <style>
 
+/* fundo geral */
+
 .stApp{
-    background-color:black;
+background-color:black;
 }
+
+/* sidebar */
+
+section[data-testid="stSidebar"]{
+background-color:#111;
+}
+
+/* texto menu */
+
+section[data-testid="stSidebar"] *{
+color:white;
+font-weight:600;
+}
+
+/* selectbox menu */
+
+div[data-baseweb="select"]{
+background-color:#ff2b2b;
+border-radius:8px;
+}
+
+/* hover */
+
+div[data-baseweb="select"]:hover{
+background-color:#cc0000;
+}
+
+/* títulos */
 
 h1,h2,h3{
-    color:#ff2b2b;
+color:#ff2b2b;
 }
 
-label{
-    color:white !important;
-}
+/* inputs */
 
 input{
-    background-color:white !important;
-    color:black !important;
+background-color:white !important;
+color:black !important;
 }
 
+/* botões */
+
 .stButton button{
-    background-color:#ff2b2b;
-    color:white;
+background-color:#ff2b2b;
+color:white;
+border-radius:6px;
 }
 
 </style>
@@ -44,7 +75,7 @@ if os.path.exists("el_kam_logo.png"):
 
 st.title("Sistema EL KAM")
 
-# ---------------- FUNÇÃO GARANTIR ARQUIVOS ----------------
+# ---------------- CRIAR ARQUIVOS ----------------
 
 def garantir(nome,colunas):
 
@@ -54,16 +85,12 @@ def garantir(nome,colunas):
 
         df.to_excel(nome,index=False)
 
-# ---------------- CRIAR PLANILHAS ----------------
-
 garantir("usuarios.xlsx",["usuario","senha","tipo"])
 garantir("funcionarios.xlsx",["funcionario"])
 garantir("mercados.xlsx",["mercado","item","lat","lon"])
 garantir("agenda.xlsx",["funcionario","dia","mercado","item"])
 garantir("relatorio.xlsx",["data","funcionario","mercado","item","status"])
 garantir("faltas.xlsx",["data","funcionario","mercado","produto","motivo"])
-
-# ---------------- CARREGAR ----------------
 
 usuarios = pd.read_excel("usuarios.xlsx")
 funcionarios = pd.read_excel("funcionarios.xlsx")
@@ -72,15 +99,15 @@ agenda = pd.read_excel("agenda.xlsx")
 relatorio = pd.read_excel("relatorio.xlsx")
 faltas = pd.read_excel("faltas.xlsx")
 
-# ---------------- CRIAR ADMIN AUTOMÁTICO ----------------
+# ---------------- ADMIN PADRÃO ----------------
 
 if usuarios.empty:
 
     usuarios = pd.DataFrame({
 
-        "usuario":["admin"],
-        "senha":["123"],
-        "tipo":["admin"]
+    "usuario":["admin"],
+    "senha":["123"],
+    "tipo":["admin"]
 
     })
 
@@ -89,33 +116,30 @@ if usuarios.empty:
 # ---------------- LOGIN ----------------
 
 if "logado" not in st.session_state:
-    st.session_state.logado = False
-    st.session_state.tipo = None
-    st.session_state.usuario = None
+    st.session_state.logado=False
 
 if not st.session_state.logado:
 
     with st.sidebar.form("login"):
 
-        st.subheader("Login")
-
         usuario = st.text_input("Usuário")
-        senha = st.text_input("Senha", type="password")
+
+        senha = st.text_input("Senha",type="password")
 
         entrar = st.form_submit_button("Entrar")
 
         if entrar:
 
             login = usuarios[
-                (usuarios.usuario == usuario) &
-                (usuarios.senha == senha)
+            (usuarios.usuario==usuario) &
+            (usuarios.senha==senha)
             ]
 
-            if len(login) > 0:
+            if len(login)>0:
 
-                st.session_state.logado = True
-                st.session_state.usuario = usuario
-                st.session_state.tipo = login.iloc[0]["tipo"]
+                st.session_state.logado=True
+                st.session_state.usuario=usuario
+                st.session_state.tipo=login.iloc[0]["tipo"]
 
                 st.rerun()
 
@@ -125,133 +149,115 @@ if not st.session_state.logado:
 
     st.stop()
 
-tipo = st.session_state.tipo
 usuario = st.session_state.usuario
-#-------------------RECUPERAR SENHA-------------
-if st.sidebar.button("Recuperar senha"):
+tipo = st.session_state.tipo
 
-    st.sidebar.write("Digite seu usuário")
+# ---------------- LOGOUT ----------------
 
-    user_rec = st.sidebar.text_input("Usuário para recuperar")
+if st.sidebar.button("Sair"):
 
-    nova = st.sidebar.text_input("Nova senha", type="password")
+    st.session_state.logado=False
+    st.rerun()
 
-    if st.sidebar.button("Resetar senha"):
-
-        if user_rec in usuarios["usuario"].values:
-
-            usuarios.loc[
-                usuarios["usuario"]==user_rec,
-                "senha"
-            ] = nova
-
-            usuarios.to_excel("usuarios.xlsx",index=False)
-
-            st.sidebar.success("Senha atualizada")
-
-        else:
-
-            st.sidebar.error("Usuário não encontrado")
-# ================= ADMIN =================
+# ================= MENU ADMIN =================
 
 if tipo=="admin":
 
     menu = st.sidebar.selectbox(
     "Menu",
-    ["funcionários","Dashboard","Mercados","Mapa","Relatórios","Falta de Produtos","Alterar Senha"]
+    [
+    "📊 Dashboard",
+    "👥 Funcionários",
+    "🏪 Mercados",
+    "🗺️ Mapa",
+    "📑 Relatórios",
+    "📦 Falta de Produtos",
+    "🔑 Alterar Senha"
+    ]
     )
-#-----------------FUNCIONÁRIOS--------------
-elif menu == "Funcionários":
-
-    st.header("Cadastrar funcionário")
-
-    nome = st.text_input("Nome do funcionário")
-    usuario_novo = st.text_input("Usuário")
-    senha_nova = st.text_input("Senha", type="password")
-
-    if st.button("Cadastrar funcionário"):
-
-        if usuario_novo in usuarios["usuario"].values:
-
-            st.error("Usuário já existe")
-
-        else:
-
-            usuarios2 = pd.concat([
-                usuarios,
-                pd.DataFrame({
-                    "usuario":[usuario_novo],
-                    "senha":[senha_nova],
-                    "tipo":["funcionario"]
-                })
-            ],ignore_index=True)
-
-            usuarios2.to_excel("usuarios.xlsx",index=False)
-
-            funcionarios2 = pd.concat([
-                funcionarios,
-                pd.DataFrame({
-                    "funcionario":[usuario_novo]
-                })
-            ],ignore_index=True)
-
-            funcionarios2.to_excel("funcionarios.xlsx",index=False)
-
-            st.success("Funcionário cadastrado")
 
 # ---------------- DASHBOARD ----------------
 
-    if menu=="Dashboard":
+    if menu=="📊 Dashboard":
 
         st.header("Dashboard")
 
-        total = len(relatorio)
+        st.metric("Tarefas registradas",len(relatorio))
 
-        feitos = len(relatorio[relatorio["status"]=="feito"])
+# ---------------- FUNCIONARIOS ----------------
 
-        c1,c2 = st.columns(2)
+    elif menu=="👥 Funcionários":
 
-        c1.metric("Tarefas",total)
+        st.header("Cadastrar funcionário")
 
-        c2.metric("Concluídas",feitos)
+        nome = st.text_input("Nome")
+        usuario_novo = st.text_input("Usuário")
+        senha_nova = st.text_input("Senha",type="password")
+
+        if st.button("Cadastrar"):
+
+            if usuario_novo in usuarios["usuario"].values:
+
+                st.error("Usuário já existe")
+
+            else:
+
+                usuarios2 = pd.concat([
+
+                usuarios,
+
+                pd.DataFrame({
+
+                "usuario":[usuario_novo],
+                "senha":[senha_nova],
+                "tipo":["funcionario"]
+
+                })
+
+                ],ignore_index=True)
+
+                usuarios2.to_excel("usuarios.xlsx",index=False)
+
+                st.success("Funcionário criado")
 
 # ---------------- MERCADOS ----------------
 
-    elif menu=="Mercados":
+    elif menu=="🏪 Mercados":
 
         st.header("Cadastrar mercado")
 
-        with st.form("merc"):
+        mercado = st.text_input("Mercado")
+        item = st.text_input("Produto")
 
-            mercado = st.text_input("Mercado")
-            item = st.text_input("Produto")
+        lat = st.number_input("Latitude")
+        lon = st.number_input("Longitude")
 
-            lat = st.number_input("Latitude")
-            lon = st.number_input("Longitude")
+        if st.button("Cadastrar mercado"):
 
-            cadastrar = st.form_submit_button("Cadastrar")
+            novo = pd.concat([
 
-            if cadastrar:
+            mercados,
 
-                novo = pd.concat([
-                mercados,
-                pd.DataFrame({
-                "mercado":[mercado],
-                "item":[item],
-                "lat":[lat],
-                "lon":[lon]
-                })
-                ],ignore_index=True)
+            pd.DataFrame({
 
-                novo.to_excel("mercados.xlsx",index=False)
+            "mercado":[mercado],
+            "item":[item],
+            "lat":[lat],
+            "lon":[lon]
 
-                st.success("Mercado cadastrado")
+            })
+
+            ],ignore_index=True)
+
+            novo.to_excel("mercados.xlsx",index=False)
+
+            st.success("Mercado cadastrado")
 
         st.dataframe(mercados)
 
 # ---------------- MAPA ----------------
 
-    elif menu=="Mapa":
+    elif menu=="🗺️ Mapa":
 
         st.header("Mapa")
 
@@ -261,17 +267,36 @@ elif menu == "Funcionários":
 
 # ---------------- RELATORIOS ----------------
 
-    elif menu=="Relatórios":
+    elif menu=="📑 Relatórios":
 
         st.dataframe(relatorio)
 
 # ---------------- FALTAS ----------------
 
-    elif menu=="Falta de Produtos":
+    elif menu=="📦 Falta de Produtos":
 
         st.header("Produtos não abastecidos")
 
         st.dataframe(faltas)
+
+# ---------------- ALTERAR SENHA ----------------
+
+    elif menu=="🔑 Alterar Senha":
+
+        usuario_sel = st.selectbox("Usuário",usuarios["usuario"])
+
+        nova = st.text_input("Nova senha",type="password")
+
+        if st.button("Salvar nova senha"):
+
+            usuarios.loc[
+            usuarios.usuario==usuario_sel,
+            "senha"
+            ] = nova
+
+            usuarios.to_excel("usuarios.xlsx",index=False)
+
+            st.success("Senha atualizada")
 
 # ================= FUNCIONARIO =================
 
@@ -279,25 +304,23 @@ else:
 
     st.header("Minhas tarefas")
 
-    tarefas = agenda[agenda.funcionario==usuario]
+    tarefas = agenda[
+    agenda.funcionario==usuario
+    ]
 
     registros_falta=[]
 
     for i,row in tarefas.iterrows():
 
-        st.markdown(f"### {row.mercado} - {row.item}")
+        st.write(row.mercado,"-",row.item)
 
-        abastecido = st.checkbox("Produto abastecido",key=f"a{i}")
+        ok = st.checkbox("Abastecido",key=f"a{i}")
 
-        nao = st.checkbox("Não foi possível abastecer",key=f"n{i}")
+        nao = st.checkbox("Não abastecido",key=f"n{i}")
 
         if nao:
 
-            motivo = st.selectbox(
-            "Motivo",
-            ["Produto em falta","Produto não entregue","Sem espaço","Outro"],
-            key=f"m{i}"
-            )
+            motivo = st.text_input("Motivo",key=f"m{i}")
 
             registros_falta.append({
 
@@ -309,10 +332,12 @@ else:
 
             })
 
-        if abastecido:
+        if ok:
 
             relatorio = pd.concat([
+
             relatorio,
+
             pd.DataFrame({
 
             "data":[date.today()],
@@ -322,6 +347,7 @@ else:
             "status":["feito"]
 
             })
+
             ])
 
     if st.button("Salvar"):
@@ -340,42 +366,3 @@ else:
             faltas2.to_excel("faltas.xlsx",index=False)
 
         st.success("Registro salvo")
-#------------------alterar senha------------------------
-     elif menu == "Alterar Senha":
-
-    st.header("Alterar senha")
-
-    usuario_sel = st.selectbox(
-        "Usuário",
-        usuarios["usuario"]
-    )
-
-    nova_senha = st.text_input(
-        "Nova senha",
-        type="password"
-    )
-
-    confirmar = st.text_input(
-        "Confirmar senha",
-        type="password"
-    )
-
-    if st.button("Salvar nova senha"):
-
-        if nova_senha != confirmar:
-
-            st.error("As senhas não coincidem")
-
-        else:
-
-            usuarios.loc[
-                usuarios["usuario"] == usuario_sel,
-                "senha"
-            ] = nova_senha
-
-            usuarios.to_excel(
-                "usuarios.xlsx",
-                index=False
-            )
-
-            st.success("Senha atualizada")
