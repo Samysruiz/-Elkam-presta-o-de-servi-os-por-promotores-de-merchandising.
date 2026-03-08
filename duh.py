@@ -29,6 +29,19 @@ label{
     color:white !important;
 }
 
+/* campo de texto */
+
+.stTextInput input{
+    background-color:white !important;
+    color:black !important;
+}
+
+/* placeholder */
+
+.stTextInput input::placeholder{
+    color:black !important;
+}
+
 .stButton button{
     background-color:#ff2b2b;
     color:white;
