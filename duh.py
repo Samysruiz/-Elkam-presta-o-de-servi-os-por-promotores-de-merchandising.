@@ -6,6 +6,57 @@ import os
 from reportlab.platypus import SimpleDocTemplate, Table, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
+# --- CONFIGURAÇÃO DA INTERFACE (TELA PRETA E VERMELHO) ---
+st.set_page_config(page_title="EL KAM", layout="wide")
+
+# CSS para forçar o fundo preto e textos vermelhos
+st.markdown(
+    """
+    <style>
+    /* Fundo da tela principal */
+    .stApp {
+        background-color: black;
+        color: white; /* Texto geral em branco para leitura */
+    }
+
+    /* Estilo para o título principal (EL KAM - Prestação de Serviço e Merchandising) */
+    .titulo-vermelho {
+        color: #FF0000; /* Vermelho Vivo */
+        font-size: 40px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    /* Estilo para subheader e outros textos importantes em vermelho */
+    h1, h2, h3, .stSubheader {
+        color: #FF0000 !important;
+    }
+
+    /* Cor dos botões (opcional, para combinar) */
+    .stButton>button {
+        background-color: #FF0000;
+        color: white;
+        border-radius: 5px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- EXIBIÇÃO DO LOGO E TÍTULO ---
+# Centralizando o Logo e o Título
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
+    # 1. O LOGO (Substitua pelo caminho correto do seu arquivo de imagem)
+    # Ex: st.image("logo_elkam.png", width=200)
+    # Como não tenho o arquivo da imagem, vou colocar um espaço reservado:
+    st.markdown("<h3 style='text-align: center; color: white;'></h3>", unsafe_allow_html=True)
+
+    # 2. O TÍTULO EM VERMELHO
+    st.markdown('<p class="titulo-vermelho">EL KAM - Prestação de Serviço e Merchandising</p>', unsafe_allow_html=True)
+
 st.set_page_config(page_title="EL KAM", layout="centered")
 
 # logo
@@ -14,7 +65,7 @@ try:
 except:
     pass
 
-st.title("Sistema EL KAM")
+
 
 usuarios = pd.read_excel("usuarios.xlsx")
 funcionarios = pd.read_excel("funcionarios.xlsx")
@@ -29,6 +80,14 @@ with st.sidebar.form("login_form"):
     senha = st.text_input("Senha", type="password")
 
     entrar = st.form_submit_button("Entrar")
+    if not entrar:
+    st.stop()
+
+login = usuarios[(usuarios.usuario == usuario) & (usuarios.senha == senha)]
+
+if len(login) == 0:
+    st.error("Usuário ou senha incorretos")
+    st.stop()
 
 tipo = login.iloc[0]["tipo"]
 
