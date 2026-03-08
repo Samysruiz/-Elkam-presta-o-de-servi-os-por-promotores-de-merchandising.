@@ -256,43 +256,64 @@ if tipo == "admin":
                     st.success("Produto removido")
 
 # ---------- AGENDA ----------
-    elif menu == "Agenda":
+ elif menu == "Agenda":
 
-        st.header("Agenda automática")
+    st.header("Montar agenda da semana")
 
-        funcionarios = pd.read_sql(
-        "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
-        conn)
+    funcionarios = pd.read_sql(
+    "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
+    conn)
 
-        mercados = pd.read_sql(
-        "SELECT mercado FROM mercados",
-        conn)
+    mercados = pd.read_sql(
+    "SELECT mercado FROM mercados",
+    conn)
 
-        func = st.selectbox(
-        "Funcionário",
-        funcionarios["usuario"])
+    func = st.selectbox(
+    "Funcionário",
+    funcionarios["usuario"]
+    )
 
-        mercado = st.selectbox(
-        "Mercado",
-        mercados["mercado"])
+    dia = st.selectbox(
+    "Dia",
+    ["segunda","terça","quarta","quinta","sexta"]
+    )
 
-        produtos = pd.read_sql(
-        f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
-        conn)
+    mercado = st.selectbox(
+    "Mercado",
+    mercados["mercado"]
+    )
 
-        if len(produtos) > 0:
+    produtos = pd.read_sql(
+    f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
+    conn)
 
-            for p in produtos["produto"]:
+    st.subheader("Produtos")
 
-                if st.button(f"Adicionar {p}"):
+    selecionar_todos = st.checkbox("Todos os produtos")
 
-                    c.execute(
-                    "INSERT INTO agenda VALUES(NULL,?,?,?)",
-                    (func,mercado,p))
+    selecionados = []
 
-                    conn.commit()
+    for p in produtos["produto"]:
 
-                    st.success("Produto adicionado à agenda")
+        if selecionar_todos:
+            selecionados.append(p)
+
+        else:
+            if st.checkbox(p):
+                selecionados.append(p)
+
+    if st.button("Salvar agenda"):
+
+        for prod in selecionados:
+
+            c.execute(
+            "INSERT INTO agenda VALUES(NULL,?,?,?,?)",
+            (func,dia,mercado,prod)
+            )
+
+        conn.commit()
+
+        st.success("Agenda criada")
 
 # ---------- RELATÓRIOS ----------
     elif menu == "Relatórios":
