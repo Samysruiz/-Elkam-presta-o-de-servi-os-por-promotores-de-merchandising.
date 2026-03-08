@@ -67,7 +67,7 @@ with st.sidebar.form("login_form"):
     senha = st.text_input("Senha", type="password")
 
     entrar = st.form_submit_button("Entrar")
-    if not entrar:
+if not entrar:
     st.stop()
 
 login = usuarios[(usuarios.usuario == usuario) & (usuarios.senha == senha)]
