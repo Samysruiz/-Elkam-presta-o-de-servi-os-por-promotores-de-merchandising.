@@ -42,7 +42,7 @@ label{
 
 import os
 
-logo_path = "logo/el_kam_logo.png"
+logo_path = "logotipo/el_kam_logo.png"
 
 if os.path.exists(logo_path):
     st.image(logo_path, width=200)
