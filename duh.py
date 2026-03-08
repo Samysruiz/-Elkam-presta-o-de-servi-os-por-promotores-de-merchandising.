@@ -4,20 +4,69 @@ import pandas as pd
 import os
 from datetime import date
 
-st.set_page_config(page_title="DUH Sistema", layout="wide")
+# ---------------- CONFIG ----------------
 
-# ---------- PASTA DE FOTOS ----------
+st.set_page_config(
+page_title="DUH Sistema",
+layout="wide",
+initial_sidebar_state="expanded"
+)
+
+# ---------------- LOGO ----------------
+
+if os.path.exists("el_kam_logo.png"):
+    st.image("el_kam_logo.png", width=220)
+
+# ---------------- CSS MOBILE ----------------
+
+st.markdown("""
+<style>
+
+.stApp{
+background-color:#0e1117;
+}
+
+section[data-testid="stSidebar"]{
+background:#111;
+}
+
+.stButton button{
+background:#ff2b2b;
+color:white;
+border-radius:6px;
+width:100%;
+}
+
+h1,h2,h3{
+color:#ff2b2b;
+}
+
+@media (max-width:768px){
+
+.block-container{
+padding:1rem;
+}
+
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- PASTA FOTO ----------------
+
 if not os.path.exists("fotos"):
     os.makedirs("fotos")
 
-# ---------- BANCO ----------
+# ---------------- BANCO ----------------
+
 conn = sqlite3.connect("duh.db", check_same_thread=False)
 c = conn.cursor()
 
-# ---------- TABELAS ----------
+# ---------------- TABELAS ----------------
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS usuarios(
-usuario TEXT PRIMARY KEY,
+usuario TEXT,
 senha TEXT,
 tipo TEXT
 )
@@ -25,7 +74,6 @@ tipo TEXT
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS mercados(
-id INTEGER PRIMARY KEY AUTOINCREMENT,
 mercado TEXT,
 endereco TEXT
 )
@@ -33,7 +81,6 @@ endereco TEXT
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS produtos(
-id INTEGER PRIMARY KEY AUTOINCREMENT,
 mercado TEXT,
 produto TEXT
 )
@@ -41,8 +88,8 @@ produto TEXT
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS agenda(
-id INTEGER PRIMARY KEY AUTOINCREMENT,
 funcionario TEXT,
+dia TEXT,
 mercado TEXT,
 produto TEXT
 )
@@ -61,16 +108,19 @@ foto TEXT
 
 conn.commit()
 
-# ---------- ADMIN PADRÃO ----------
+# ---------------- ADMIN PADRÃO ----------------
+
 admin = pd.read_sql("SELECT * FROM usuarios", conn)
 
 if admin.empty:
+
     c.execute("INSERT INTO usuarios VALUES('admin','123','admin')")
     conn.commit()
 
-# ---------- LOGIN ----------
+# ---------------- LOGIN ----------------
+
 if "logado" not in st.session_state:
-    st.session_state.logado = False
+    st.session_state.logado=False
 
 if not st.session_state.logado:
 
@@ -85,14 +135,16 @@ if not st.session_state.logado:
         f"SELECT * FROM usuarios WHERE usuario='{usuario}' AND senha='{senha}'",
         conn)
 
-        if len(login) > 0:
+        if len(login)>0:
 
-            st.session_state.logado = True
-            st.session_state.usuario = usuario
-            st.session_state.tipo = login.iloc[0]["tipo"]
+            st.session_state.logado=True
+            st.session_state.usuario=usuario
+            st.session_state.tipo=login.iloc[0]["tipo"]
+
             st.rerun()
 
         else:
+
             st.error("Usuário ou senha inválidos")
 
     st.stop()
@@ -100,16 +152,18 @@ if not st.session_state.logado:
 usuario = st.session_state.usuario
 tipo = st.session_state.tipo
 
-# ---------- LOGOUT ----------
+# ---------------- LOGOUT ----------------
+
 if st.sidebar.button("Sair"):
-    st.session_state.logado = False
+
+    st.session_state.logado=False
     st.rerun()
 
-# ======================================================
-# ===================== ADMIN ==========================
-# ======================================================
+# =====================================================
+# ================= DASHBOARD ==========================
+# =====================================================
 
-if tipo == "admin":
+if tipo=="admin":
 
     menu = st.sidebar.selectbox(
     "Menu",
@@ -122,8 +176,9 @@ if tipo == "admin":
     "Fotos"
     ])
 
-# ---------- DASHBOARD ----------
-    if menu == "Dashboard":
+# ---------------- DASHBOARD ----------------
+
+    if menu=="Dashboard":
 
         st.header("Dashboard")
 
@@ -131,18 +186,36 @@ if tipo == "admin":
 
         st.metric("Relatórios enviados", len(rel))
 
-        if len(rel) > 0:
+        if len(rel)>0:
 
             graf = rel.groupby("status").size()
+
             st.bar_chart(graf)
 
-# ---------- FUNCIONÁRIOS ----------
-    elif menu == "Funcionários":
+        st.subheader("Ranking Promotores")
 
-        st.subheader("Cadastrar funcionário")
+        rank = rel.groupby("funcionario").size().sort_values(ascending=False)
+
+        st.dataframe(rank)
+
+        st.subheader("Produtos com mais falta")
+
+        faltas = rel[rel["status"]=="Falta"]
+
+        if len(faltas)>0:
+
+            graf2 = faltas.groupby("produto").size()
+
+            st.bar_chart(graf2)
+
+# ---------------- FUNCIONARIOS ----------------
+
+    elif menu=="Funcionários":
+
+        st.header("Funcionários")
 
         user = st.text_input("Usuário")
-        senha = st.text_input("Senha", type="password")
+        senha = st.text_input("Senha")
 
         if st.button("Cadastrar"):
 
@@ -151,258 +224,188 @@ if tipo == "admin":
             (user,senha,"funcionario"))
 
             conn.commit()
+
             st.success("Funcionário criado")
 
-        funcionarios = pd.read_sql(
-        "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
-        conn)
+# ---------------- MERCADOS ----------------
 
-        if len(funcionarios) > 0:
-
-            func_del = st.selectbox("Excluir funcionário",
-            funcionarios["usuario"])
-
-            if st.button("Excluir funcionário"):
-
-                c.execute(
-                "DELETE FROM usuarios WHERE usuario=?",
-                (func_del,))
-
-                conn.commit()
-                st.success("Removido")
-
-# ---------- MERCADOS ----------
-    elif menu == "Mercados":
+    elif menu=="Mercados":
 
         st.header("Mercados")
 
-        mercado = st.text_input("Nome do mercado")
+        mercado = st.text_input("Mercado")
         endereco = st.text_input("Endereço")
 
         if st.button("Cadastrar mercado"):
 
             c.execute(
-            "INSERT INTO mercados VALUES(NULL,?,?)",
+            "INSERT INTO mercados VALUES(?,?)",
             (mercado,endereco))
 
             conn.commit()
+
             st.success("Mercado criado")
 
         mercados = pd.read_sql("SELECT * FROM mercados", conn)
 
-        if len(mercados) > 0:
+        mercado_sel = st.selectbox(
+        "Selecionar mercado",
+        mercados["mercado"])
 
-            mercado_sel = st.selectbox(
-            "Selecionar mercado",
-            mercados["mercado"])
+        st.subheader("Produtos")
 
-# ---------- EDITAR ENDEREÇO ----------
-            novo_end = st.text_input("Editar endereço")
+        produto = st.text_input("Produto")
 
-            if st.button("Salvar endereço"):
-
-                c.execute(
-                "UPDATE mercados SET endereco=? WHERE mercado=?",
-                (novo_end,mercado_sel))
-
-                conn.commit()
-
-                st.success("Atualizado")
-
-# ---------- EXCLUIR MERCADO ----------
-            if st.button("Excluir mercado"):
-
-                c.execute(
-                "DELETE FROM mercados WHERE mercado=?",
-                (mercado_sel,))
-
-                conn.commit()
-
-                st.success("Mercado excluído")
-
-# ---------- PRODUTOS ----------
-            st.subheader("Produtos")
-
-            produto = st.text_input("Produto")
-
-            if st.button("Adicionar produto"):
-
-                c.execute(
-                "INSERT INTO produtos VALUES(NULL,?,?)",
-                (mercado_sel,produto))
-
-                conn.commit()
-
-                st.success("Produto adicionado")
-
-            produtos = pd.read_sql(
-            f"SELECT * FROM produtos WHERE mercado='{mercado_sel}'",
-            conn)
-
-            if len(produtos) > 0:
-
-                prod_del = st.selectbox(
-                "Excluir produto",
-                produtos["produto"])
-
-                if st.button("Excluir produto"):
-
-                    c.execute(
-                    "DELETE FROM produtos WHERE produto=?",
-                    (prod_del,))
-
-                    conn.commit()
-
-                    st.success("Produto removido")
-
-# ---------- AGENDA ----------
-    elif menu == "Agenda":
-
-     st.header("Montar agenda da semana")
-
-    funcionarios = pd.read_sql(
-    "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
-    conn)
-
-    mercados = pd.read_sql(
-    "SELECT mercado FROM mercados",
-    conn)
-
-    func = st.selectbox(
-    "Funcionário",
-    funcionarios["usuario"]
-    )
-
-    dia = st.selectbox(
-    "Dia",
-    ["segunda","terça","quarta","quinta","sexta"]
-    )
-
-    mercado = st.selectbox(
-    "Mercado",
-    mercados["mercado"]
-    )
-
-    produtos = pd.read_sql(
-    f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
-    conn)
-
-    st.subheader("Produtos")
-
-    selecionar_todos = st.checkbox("Todos os produtos")
-
-    selecionados = []
-
-    for p in produtos["produto"]:
-
-        if selecionar_todos:
-            selecionados.append(p)
-
-        else:
-            if st.checkbox(p):
-                selecionados.append(p)
-
-    if st.button("Salvar agenda"):
-
-        for prod in selecionados:
+        if st.button("Adicionar produto"):
 
             c.execute(
-            "INSERT INTO agenda VALUES(NULL,?,?,?,?)",
-            (func,dia,mercado,prod)
-            )
+            "INSERT INTO produtos VALUES(?,?)",
+            (mercado_sel,produto))
 
-        conn.commit()
+            conn.commit()
 
-        st.success("Agenda criada")
+            st.success("Produto adicionado")
 
-# ---------- RELATÓRIOS ----------
-    elif menu == "Relatórios":
+# ---------------- AGENDA ----------------
 
-        st.header("Relatórios")
+    elif menu=="Agenda":
+
+        st.header("Montar agenda")
+
+        funcionarios = pd.read_sql(
+        "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
+        conn)
+
+        mercados = pd.read_sql(
+        "SELECT mercado FROM mercados",
+        conn)
+
+        func = st.selectbox("Funcionário", funcionarios["usuario"])
+
+        dia = st.selectbox(
+        "Dia",
+        ["segunda","terça","quarta","quinta","sexta"]
+        )
+
+        mercado = st.selectbox("Mercado", mercados["mercado"])
+
+        produtos = pd.read_sql(
+        f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
+        conn)
+
+        st.subheader("Produtos")
+
+        selecionar_todos = st.checkbox("Todos os produtos")
+
+        selecionados=[]
+
+        for p in produtos["produto"]:
+
+            if selecionar_todos:
+
+                selecionados.append(p)
+
+            else:
+
+                if st.checkbox(p):
+
+                    selecionados.append(p)
+
+        if st.button("Salvar agenda"):
+
+            for prod in selecionados:
+
+                c.execute(
+                "INSERT INTO agenda VALUES(?,?,?,?)",
+                (func,dia,mercado,prod))
+
+            conn.commit()
+
+            st.success("Agenda criada")
+
+# ---------------- RELATORIOS ----------------
+
+    elif menu=="Relatórios":
 
         rel = pd.read_sql("SELECT * FROM relatorio", conn)
 
         st.dataframe(rel)
 
-        if st.button("Exportar Excel"):
+# ---------------- FOTOS ----------------
 
-            rel.to_excel("relatorios.xlsx", index=False)
-
-            st.success("Exportado")
-
-# ---------- FOTOS ----------
-    elif menu == "Fotos":
-
-        st.header("Fotos")
+    elif menu=="Fotos":
 
         fotos = os.listdir("fotos")
 
         for f in fotos:
+
             st.image(f"fotos/{f}", width=300)
 
-# ======================================================
-# ================= FUNCIONÁRIO ========================
-# ======================================================
+# =====================================================
+# ================= FUNCIONARIO =======================
+# =====================================================
 
 else:
 
-    st.header("Minha agenda")
+    st.header("Minha agenda da semana")
 
     tarefas = pd.read_sql(
     f"SELECT * FROM agenda WHERE funcionario='{usuario}'",
     conn)
 
-    registros = []
+    dias = tarefas.groupby("dia")
 
-    for i,row in tarefas.iterrows():
+    for dia, dados in dias:
 
-        st.subheader(row["mercado"])
+        st.header(dia.upper())
 
-        info = pd.read_sql(
-        f"SELECT endereco FROM mercados WHERE mercado='{row['mercado']}'",
-        conn)
+        mercados = dados.groupby("mercado")
 
-        endereco = info.iloc[0]["endereco"]
+        for mercado, produtos in mercados:
 
-        st.write("Endereço:", endereco)
+            st.subheader(mercado)
 
-        mapa = "https://www.google.com/maps/search/" + endereco.replace(" ","+")
+            info = pd.read_sql(
+            f"SELECT endereco FROM mercados WHERE mercado='{mercado}'",
+            conn)
 
-        st.markdown(f"[Abrir rota no Google Maps]({mapa})")
+            endereco = info.iloc[0]["endereco"]
 
-        st.write("Produto:", row["produto"])
+            st.write("📍", endereco)
 
-        status = st.radio(
-        "Status",
-        ["Abastecido","Falta"],
-        key=i)
+            mapa = "https://www.google.com/maps/search/" + endereco.replace(" ","+")
 
-        foto = st.file_uploader(
-        "Foto da gôndola",
-        key=f"foto{i}")
+            st.markdown(f"[Abrir rota no Google Maps]({mapa})")
 
-        caminho = ""
+            for i,row in produtos.iterrows():
 
-        if foto:
+                st.checkbox(row["produto"], key=f"{i}")
 
-            caminho = f"fotos/{usuario}_{i}.jpg"
+            foto = st.file_uploader(
+            "Foto da gôndola",
+            key=f"foto{i}")
 
-            with open(caminho,"wb") as f:
-                f.write(foto.getbuffer())
+            caminho=""
 
-        registros.append({
-        "data":date.today(),
-        "funcionario":usuario,
-        "mercado":row["mercado"],
-        "produto":row["produto"],
-        "status":status,
-        "foto":caminho
-        })
+            if foto:
 
-    if st.button("Enviar relatório"):
+                caminho=f"fotos/{usuario}_{i}.jpg"
 
-        df = pd.DataFrame(registros)
+                with open(caminho,"wb") as f:
 
-        df.to_sql("relatorio", conn, if_exists="append", index=False)
+                    f.write(foto.getbuffer())
 
-        st.success("Relatório enviado")
+            if st.button(f"Enviar relatório {mercado}"):
+
+                df = pd.DataFrame([{
+                "data":date.today(),
+                "funcionario":usuario,
+                "mercado":mercado,
+                "produto":"varios",
+                "status":"ok",
+                "foto":caminho
+                }])
+
+                df.to_sql("relatorio", conn, if_exists="append", index=False)
+
+                st.success("Relatório enviado")
