@@ -220,7 +220,7 @@ elif menu == "Agenda":
 
     
     
-    elif menu == "Mapa":
+elif menu == "Mapa":
 
         st.header("Mapa de mercados")
 
