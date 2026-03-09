@@ -113,23 +113,49 @@ if admin.empty:
     conn.commit()
 
 # ---------------- LOGIN ----------------
-# ---------------- LOGIN ----------------
+# ---------------- LOGIN MODERNO ----------------
 
 if "logado" not in st.session_state:
     st.session_state["logado"] = False
 
 if not st.session_state["logado"]:
 
-    col_login, col_logo = st.columns([1,1])
+    # CSS visual mais profissional
+    st.markdown("""
+    <style>
 
-    # -------- LADO ESQUERDO --------
-    with col_login:
+    .login-box{
+        padding-top:120px;
+        padding-left:60px;
+    }
 
-        st.markdown("## 🔑 Acesso El Kam")
+    .titulo{
+        font-size:40px;
+        font-weight:bold;
+        color:#ff2b2b;
+    }
+
+    .sub{
+        color:white;
+        margin-bottom:30px;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1,1])
+
+    # -------- LADO LOGIN --------
+    with col1:
+
+        st.markdown('<div class="login-box">', unsafe_allow_html=True)
+
+        st.markdown('<div class="titulo">EL KAM</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub">Sistema de Promotores</div>', unsafe_allow_html=True)
 
         usuario_input = st.text_input(
             "Usuário",
-            placeholder="Ex: eduardo kampf"
+            placeholder="nome sobrenome"
         ).strip().lower()
 
         senha_input = st.text_input(
@@ -137,12 +163,15 @@ if not st.session_state["logado"]:
             type="password"
         )
 
+        st.write("")
+
         if st.button("ENTRAR", use_container_width=True):
 
             if " " not in usuario_input:
                 st.error("Digite Nome e Sobrenome.")
 
             else:
+
                 c.execute(
                     "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
                     (usuario_input, senha_input)
@@ -151,38 +180,43 @@ if not st.session_state["logado"]:
                 user = c.fetchone()
 
                 if user:
+
                     st.session_state["logado"] = True
                     st.session_state["usuario"] = usuario_input
                     st.session_state["tipo"] = user[2]
+
                     st.rerun()
 
                 else:
-                    st.error("Usuário ou senha incorretos.")
 
-    # -------- LADO DIREITO --------
-    with col_logo:
+                    st.error("Usuário ou senha incorretos")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+    # -------- LADO LOGO --------
+    with col2:
 
         if os.path.exists("el_kam_logo.png"):
 
-            st.markdown(
-            """
+            st.markdown("""
             <div style="
-            height:90vh;
+            height:100vh;
             display:flex;
             align-items:center;
             justify-content:center;
             background-color:black;
             ">
-            """,
-            unsafe_allow_html=True
-            )
+            """, unsafe_allow_html=True)
 
-            st.image("el_kam_logo.png", use_container_width=True)
+            st.image(
+                "el_kam_logo.png",
+                use_container_width=True
+            )
 
             st.markdown("</div>", unsafe_allow_html=True)
 
     st.stop()
-
 # ---------------- CONTROLE DE FUNCIONÁRIOS (ADM) ----------------
 if tipo == "admin":
     st.title(f"👑 Painel ADM - {usuario.title()}")
