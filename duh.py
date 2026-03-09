@@ -89,7 +89,26 @@ CREATE TABLE IF NOT EXISTS relatorio (
 """)
 
 conn.commit()
+# ---------------- MIGRAÇÃO DO BANCO ----------------
 
+agenda_cols = [row[1] for row in c.execute("PRAGMA table_info(agenda)").fetchall()]
+
+if "dia" not in agenda_cols:
+    c.execute("ALTER TABLE agenda RENAME TO agenda_backup")
+    c.execute("""
+        CREATE TABLE agenda (
+            funcionario TEXT,
+            dia TEXT,
+            mercado TEXT,
+            produto TEXT
+        )
+    """)
+    try:
+        c.execute("INSERT INTO agenda SELECT funcionario, 'Segunda', mercado, produto FROM agenda_backup")
+    except Exception:
+        pass
+    c.execute("DROP TABLE IF EXISTS agenda_backup")
+    conn.commit()
 # ---------------- ADMIN PADRÃO ----------------
 
 admin = pd.read_sql("SELECT * FROM usuarios", conn)
