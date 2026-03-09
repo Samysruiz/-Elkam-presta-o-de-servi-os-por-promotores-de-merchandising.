@@ -7,34 +7,33 @@ from datetime import date
 # ---------------- CONFIG ----------------
 
 st.set_page_config(
-    page_title="DUH Sistema",
-    layout="wide",
-    initial_sidebar_state="expanded"
+page_title="DUH Sistema",
+layout="wide"
 )
 
 st.markdown("""
 <style>
 
 .stApp{
-    background-color:black;
+background-color:black;
 }
 
 h1,h2,h3{
-    color:#ff2b2b;
+color:#ff2b2b;
 }
 
 label{
-    color:white !important;
+color:white !important;
 }
 
 input{
-    background-color:white !important;
-    color:black !important;
+background-color:white !important;
+color:black !important;
 }
 
 .stButton button{
-    background-color:#ff2b2b;
-    color:white;
+background-color:#ff2b2b;
+color:white;
 }
 
 </style>
@@ -101,57 +100,107 @@ conn.commit()
 admin = pd.read_sql("SELECT * FROM usuarios", conn)
 
 if admin.empty:
+
     c.execute("INSERT INTO usuarios VALUES('admin','123','admin')")
     conn.commit()
 
+# ---------------- SESSION ----------------
+
+if "logado" not in st.session_state:
+    st.session_state["logado"] = False
+
 # ---------------- LOGIN ----------------
 
-usuario_input = st.text_input("Usuário", placeholder="nome sobrenome ou admin").strip().lower()
-senha_input = st.text_input("Senha", type="password")
+if not st.session_state["logado"]:
 
-if st.button("ENTRAR", use_container_width=True):
+    col1, col2 = st.columns([1,2])
 
-    if usuario_input == "":
-        st.error("Digite o usuário")
+    with col1:
 
-    else:
+        st.markdown("## 🔑 Acesso El Kam")
 
-        c.execute(
-        "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
-        (usuario_input, senha_input)
-        )
+        usuario_input = st.text_input("Usuário").strip().lower()
+        senha_input = st.text_input("Senha", type="password")
 
-        user = c.fetchone()
+        if st.button("ENTRAR", use_container_width=True):
 
-        if user:
-            st.session_state["logado"] = True
-            st.session_state["usuario"] = usuario_input
-            st.session_state["tipo"] = user[2]
-            st.rerun()
+            c.execute(
+            "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
+            (usuario_input, senha_input)
+            )
 
-        else:
-            st.error("Usuário ou senha incorretos")
+            user = c.fetchone()
+
+            if user:
+
+                st.session_state["logado"] = True
+                st.session_state["usuario"] = user[0]
+                st.session_state["tipo"] = user[2]
+
+                st.rerun()
+
+            else:
+
+                st.error("Usuário ou senha incorretos")
+
+    with col2:
+
+        if os.path.exists("el_kam_logo.png"):
+            st.image("el_kam_logo.png", use_container_width=True)
+
+    st.stop()
+
 # ---------------- VARIÁVEIS ----------------
 
-usuario = st.session_state.get("usuario")
-tipo = st.session_state.get("tipo")
+usuario = st.session_state["usuario"]
+tipo = st.session_state["tipo"]
 
-# ---------------- ADMIN ----------------
+# ---------------- SIDEBAR ----------------
+
+with st.sidebar:
+
+    st.write(f"👤 {usuario}")
+
+    if st.button("🚪 Logout"):
+
+        st.session_state["logado"] = False
+        st.rerun()
+
+    with st.expander("🔐 Alterar senha"):
+
+        nova = st.text_input("Nova senha", type="password")
+
+        if st.button("Atualizar senha"):
+
+            if nova:
+
+                c.execute(
+                "UPDATE usuarios SET senha=? WHERE usuario=?",
+                (nova, usuario)
+                )
+
+                conn.commit()
+
+                st.success("Senha alterada")
+
+# =====================================================
+# ================= ADMIN ==============================
+# =====================================================
 
 if tipo == "admin":
 
-    st.title(f"👑 Painel ADM - {usuario.title()}")
+    st.title(f"👑 Painel ADM - {usuario}")
 
     menu = st.sidebar.selectbox(
-        "Menu",
-        [
-            "Dashboard",
-            "Funcionários",
-            "Mercados",
-            "Agenda",
-            "Relatórios",
-            "Fotos"
-        ])
+    "Menu",
+    [
+    "Dashboard",
+    "Funcionários",
+    "Mercados",
+    "Agenda",
+    "Relatórios",
+    "Fotos"
+    ])
 
 # ---------------- DASHBOARD ----------------
 
@@ -175,7 +224,7 @@ if tipo == "admin":
 
         st.dataframe(rank)
 
-# ---------------- FUNCIONÁRIOS ----------------
+# ---------------- FUNCIONARIOS ----------------
 
     elif menu == "Funcionários":
 
@@ -187,9 +236,8 @@ if tipo == "admin":
         if st.button("Cadastrar"):
 
             c.execute(
-                "INSERT INTO usuarios VALUES(?,?,?)",
-                (user, senha, "funcionario")
-            )
+            "INSERT INTO usuarios VALUES(?,?,?)",
+            (user,senha,"funcionario"))
 
             conn.commit()
 
@@ -207,9 +255,8 @@ if tipo == "admin":
         if st.button("Cadastrar mercado"):
 
             c.execute(
-                "INSERT INTO mercados VALUES(?,?)",
-                (mercado, endereco)
-            )
+            "INSERT INTO mercados VALUES(?,?)",
+            (mercado,endereco))
 
             conn.commit()
 
@@ -222,30 +269,32 @@ if tipo == "admin":
         st.header("Montar agenda")
 
         funcionarios = pd.read_sql(
-            "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
-            conn)
+        "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
+        conn)
 
         mercados = pd.read_sql(
-            "SELECT mercado FROM mercados",
-            conn)
+        "SELECT mercado FROM mercados",
+        conn)
 
         func = st.selectbox("Funcionário", funcionarios["usuario"])
 
         dia = st.selectbox(
-            "Dia",
-            ["segunda","terça","quarta","quinta","sexta"]
+        "Dia",
+        ["segunda","terça","quarta","quinta","sexta"]
         )
 
         mercado = st.selectbox("Mercado", mercados["mercado"])
 
         produtos = pd.read_sql(
-            f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
-            conn)
+        f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
+        conn)
 
         selecionados=[]
 
         for p in produtos["produto"]:
+
             if st.checkbox(p):
+
                 selecionados.append(p)
 
         if st.button("Salvar agenda"):
@@ -253,15 +302,14 @@ if tipo == "admin":
             for prod in selecionados:
 
                 c.execute(
-                    "INSERT INTO agenda VALUES(?,?,?,?)",
-                    (func,dia,mercado,prod)
-                )
+                "INSERT INTO agenda VALUES(?,?,?,?)",
+                (func,dia,mercado,prod))
 
             conn.commit()
 
             st.success("Agenda criada")
 
-# ---------------- RELATÓRIOS ----------------
+# ---------------- RELATORIOS ----------------
 
     elif menu == "Relatórios":
 
@@ -276,17 +324,26 @@ if tipo == "admin":
         fotos = os.listdir("fotos")
 
         for f in fotos:
+
             st.image(f"fotos/{f}", width=300)
 
-# ---------------- FUNCIONÁRIO ----------------
+# =====================================================
+# ================= FUNCIONARIO =======================
+# =====================================================
 
 else:
 
     st.header("Minha agenda da semana")
 
     tarefas = pd.read_sql(
-        f"SELECT * FROM agenda WHERE funcionario='{usuario}'",
-        conn)
+    f"SELECT * FROM agenda WHERE funcionario='{usuario}'",
+    conn)
+
+    if tarefas.empty:
+
+        st.info("Nenhuma agenda cadastrada ainda.")
+
+        st.stop()
 
     dias = tarefas.groupby("dia")
 
@@ -301,8 +358,8 @@ else:
             st.subheader(mercado)
 
             info = pd.read_sql(
-                f"SELECT endereco FROM mercados WHERE mercado='{mercado}'",
-                conn)
+            f"SELECT endereco FROM mercados WHERE mercado='{mercado}'",
+            conn)
 
             endereco = info.iloc[0]["endereco"]
 
@@ -317,8 +374,8 @@ else:
                 st.checkbox(row["produto"], key=f"{i}")
 
             foto = st.file_uploader(
-                "Foto da gôndola",
-                key=f"foto{i}")
+            "Foto da gôndola",
+            key=f"foto{i}")
 
             caminho=""
 
@@ -327,17 +384,18 @@ else:
                 caminho=f"fotos/{usuario}_{i}.jpg"
 
                 with open(caminho,"wb") as f:
+
                     f.write(foto.getbuffer())
 
             if st.button(f"Enviar relatório {mercado}"):
 
                 df = pd.DataFrame([{
-                    "data":date.today(),
-                    "funcionario":usuario,
-                    "mercado":mercado,
-                    "produto":"varios",
-                    "status":"ok",
-                    "foto":caminho
+                "data":date.today(),
+                "funcionario":usuario,
+                "mercado":mercado,
+                "produto":"varios",
+                "status":"ok",
+                "foto":caminho
                 }])
 
                 df.to_sql("relatorio", conn, if_exists="append", index=False)
