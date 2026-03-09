@@ -113,54 +113,6 @@ if admin.empty:
     conn.commit()
 
 # ---------------- LOGIN ----------------
-# ---------------- TELA DE LOGIN (SUBSTITUA A PARTIR DA LINHA 42) ----------------
-
-# 1. Verificar se o usuário já está logado
-if "logado" not in st.session_state:
-    st.session_state["logado"] = False
-
-if not st.session_state["logado"]:
-    # Criar colunas: proporção 1 para a esquerda (login) e 2 para a direita (logo)
-    col_login, col_logo = st.columns([1, 2])
-
-    with col_login:
-        st.markdown("### 🔑 Acesso ao Sistema")
-        st.write("Introduza as suas credenciais para continuar.")
-        
-        usuario_input = st.text_input("Usuário", placeholder="Ex: eduardo")
-        senha_input = st.text_input("Senha", type="password")
-        
-        if st.button("ENTRAR", use_container_width=True):
-            # Verifica no seu banco de dados SQLite
-            c.execute("SELECT * FROM usuarios WHERE usuario=? AND senha=?", (usuario_input, senha_input))
-            user = c.fetchone()
-            
-            if user:
-                st.session_state["logado"] = True
-                st.session_state["usuario"] = usuario_input
-                st.session_state["tipo"] = user[2]
-                st.rerun()
-            else:
-                st.error("Usuário ou senha incorretos. Verifique os dados.")
-
-    with col_logo:
-        # Exibe o logo preenchendo a coluna da direita
-        if os.path.exists("el_kam_logo.png"):
-            st.image("el_kam_logo.png", use_container_width=True)
-        else:
-            # Caso o ficheiro não exista, mostra um fundo escuro ou aviso
-            st.info("Logótipo 'el_kam_logo.png' não encontrado para exibição.")
-
-    # IMPORTANTE: Interrompe a execução aqui para quem não está logado
-    st.stop()
-
-# ---------------- FIM DO BLOCO DE LOGIN ----------------
-# ---------------- LOGOUT ----------------
-
-if st.sidebar.button("Sair"):
-
-    st.session_state.logado=False
-    st.rerun()
 
 # =====================================================
 # ================= DASHBOARD ==========================
