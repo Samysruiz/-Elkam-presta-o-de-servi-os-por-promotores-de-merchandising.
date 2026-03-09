@@ -113,31 +113,30 @@ if admin.empty:
     conn.commit()
 
 # ---------------- LOGIN ----------------
-# ---------------- LOGIN MODERNO ----------------
+# ---------------- LOGIN LIMPO ----------------
 
 if "logado" not in st.session_state:
     st.session_state["logado"] = False
 
 if not st.session_state["logado"]:
 
-    # CSS visual mais profissional
     st.markdown("""
     <style>
 
-    .login-box{
-        padding-top:120px;
-        padding-left:60px;
+    .block-container{
+        padding-top:0rem;
     }
 
-    .titulo{
-        font-size:40px;
-        font-weight:bold;
-        color:#ff2b2b;
+    .login-left{
+        padding-top:180px;
+        padding-left:80px;
     }
 
-    .sub{
-        color:white;
-        margin-bottom:30px;
+    .logo-right{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        height:100vh;
     }
 
     </style>
@@ -145,13 +144,13 @@ if not st.session_state["logado"]:
 
     col1, col2 = st.columns([1,1])
 
-    # -------- LADO LOGIN --------
+    # -------- LOGIN --------
     with col1:
 
-        st.markdown('<div class="login-box">', unsafe_allow_html=True)
+        st.markdown('<div class="login-left">', unsafe_allow_html=True)
 
-        st.markdown('<div class="titulo">EL KAM</div>', unsafe_allow_html=True)
-        st.markdown('<div class="sub">Sistema de Promotores</div>', unsafe_allow_html=True)
+        st.markdown("## 🔑 EL KAM")
+        st.write("Sistema de Promotores")
 
         usuario_input = st.text_input(
             "Usuário",
@@ -163,11 +162,10 @@ if not st.session_state["logado"]:
             type="password"
         )
 
-        st.write("")
-
         if st.button("ENTRAR", use_container_width=True):
 
             if " " not in usuario_input:
+
                 st.error("Digite Nome e Sobrenome.")
 
             else:
@@ -191,31 +189,19 @@ if not st.session_state["logado"]:
 
                     st.error("Usuário ou senha incorretos")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-
-    # -------- LADO LOGO --------
+    # -------- LOGO --------
     with col2:
 
+        st.markdown('<div class="logo-right">', unsafe_allow_html=True)
+
         if os.path.exists("el_kam_logo.png"):
+            st.image("el_kam_logo.png", width=500)
 
-            st.markdown("""
-            <div style="
-            height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background-color:black;
-            ">
-            """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-            st.image(
-                "el_kam_logo.png",
-                use_container_width=True
-            )
-
-            st.markdown("</div>", unsafe_allow_html=True)
-
+    st.stop()
     st.stop()
 # ---------------- CONTROLE DE FUNCIONÁRIOS (ADM) ----------------
 if tipo == "admin":
