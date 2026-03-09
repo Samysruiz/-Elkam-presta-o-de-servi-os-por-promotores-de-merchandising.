@@ -60,9 +60,10 @@ tipo TEXT
 """)
 
 c.execute("""
-CREATE TABLE IF NOT EXISTS mercados(
-mercado TEXT,
-endereco TEXT
+CREATE TABLE IF NOT EXISTS mercados (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mercado TEXT,
+    endereco TEXT UNIQUE 
 )
 """)
 
@@ -246,9 +247,7 @@ if tipo == "admin":
 
                 st.success("Funcionário criado")
 
-    # ---------------- MERCADOS ----------------
-
-    elif menu == "Mercados":
+  elif menu == "Mercados":
 
     st.header("Mercados")
 
@@ -258,26 +257,27 @@ if tipo == "admin":
     if st.button("Cadastrar mercado"):
 
         if not mercado or not endereco:
-
             st.warning("Preencha mercado e endereço")
-
         else:
-
             try:
+                # 1. Verifica se já existe um registro com esse endereço
+                c.execute("SELECT mercado FROM mercados WHERE endereco = ?", (endereco.strip(),))
+                resultado = c.fetchone()
 
-                c.execute(
-                    "INSERT INTO mercados (mercado,endereco) VALUES (?,?)",
-                    (mercado.strip(), endereco.strip())
-                )
-
-                conn.commit()
-
-                st.success("Mercado criado com sucesso")
-
-                st.rerun()
+                if resultado:
+                    # Se encontrou algo, avisa o usuário e não cadastra
+                    st.error(f"Erro: O endereço já está cadastrado para o mercado '{resultado[0]}'.")
+                else:
+                    # 2. Se o endereço for novo, faz o cadastro normalmente
+                    c.execute(
+                        "INSERT INTO mercados (mercado, endereco) VALUES (?,?)",
+                        (mercado.strip(), endereco.strip())
+                    )
+                    conn.commit()
+                    st.success("Mercado criado com sucesso")
+                    st.rerun()
 
             except Exception as e:
-
                 st.error("Erro ao salvar mercado")
                 st.write(e)
 # =====================================================
