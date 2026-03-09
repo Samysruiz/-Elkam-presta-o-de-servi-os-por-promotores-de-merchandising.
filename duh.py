@@ -250,26 +250,36 @@ if tipo == "admin":
 
     elif menu == "Mercados":
 
-        st.header("Mercados")
+    st.header("Mercados")
 
-        mercado = st.text_input("Mercado")
-        endereco = st.text_input("Endereço")
+    mercado = st.text_input("Mercado")
+    endereco = st.text_input("Endereço")
 
-        if st.button("Cadastrar mercado"):
+    if st.button("Cadastrar mercado"):
 
-            if mercado.strip() == "" or endereco.strip() == "":
-                st.error("Preencha mercado e endereço")
+        if not mercado or not endereco:
 
-            else:
+            st.warning("Preencha mercado e endereço")
+
+        else:
+
+            try:
+
                 c.execute(
-                    "INSERT INTO mercados VALUES(?,?)",
-                    (mercado, endereco)
+                    "INSERT INTO mercados (mercado,endereco) VALUES (?,?)",
+                    (mercado.strip(), endereco.strip())
                 )
 
                 conn.commit()
 
-                st.success("Mercado criado")
+                st.success("Mercado criado com sucesso")
 
+                st.rerun()
+
+            except Exception as e:
+
+                st.error("Erro ao salvar mercado")
+                st.write(e)
 # =====================================================
 # ================= FUNCIONARIO =======================
 # =====================================================
