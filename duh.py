@@ -113,25 +113,27 @@ if admin.empty:
     conn.commit()
 
 # ---------------- LOGIN ----------------
-# ---------------- SISTEMA DE ACESSO EL KAM (INÍCIO) ----------------
+# ---------------- SISTEMA DE ACESSO EL KAM (REVISADO) ----------------
 
 if "logado" not in st.session_state:
     st.session_state["logado"] = False
 
-# TELA DE LOGIN DIVIDIDA
+# TELA DE LOGIN DIVIDIDA (SEM LOGO NO TOPO)
 if not st.session_state["logado"]:
-    col_login, col_logo = st.columns([1, 2]) # 1 parte login, 2 partes logo
+    # Criamos a divisão: 1 parte para o formulário, 2 partes para a imagem
+    col_login, col_logo = st.columns([1, 2], gap="large") 
 
     with col_login:
+        st.write("") # Espaço para descer um pouco o formulário
+        st.write("")
         st.markdown("### 🔑 Acesso El Kam")
         
-        # Uso de placeholder e strip/lower para padronizar o banco
         usuario_input = st.text_input("Usuário", placeholder="Ex: eduardo kampf").strip().lower()
         senha_input = st.text_input("Senha", type="password")
         
         if st.button("ENTRAR", use_container_width=True):
             if " " not in usuario_input:
-                st.error("⚠️ Por favor, insira Nome e Sobrenome.")
+                st.error("⚠️ Digite Nome e Sobrenome.")
             else:
                 c.execute("SELECT * FROM usuarios WHERE usuario=? AND senha=?", (usuario_input, senha_input))
                 user = c.fetchone()
@@ -143,62 +145,54 @@ if not st.session_state["logado"]:
                     st.rerun()
                 else:
                     st.error("❌ Usuário ou senha incorretos.")
-        
-        st.markdown("---")
-        st.caption("Acesso restrito a funcionários autorizados.")
 
     with col_logo:
+        # Aqui o logo ocupa toda a parte direita
         if os.path.exists("el_kam_logo.png"):
-            # O logo preenche a direita proporcionalmente
             st.image("el_kam_logo.png", use_container_width=True)
         else:
-            st.info("Logótipo el_kam_logo.png não encontrado.")
+            st.info("Arquivo 'el_kam_logo.png' não encontrado.")
 
-    st.stop() # Para o código aqui se não estiver logado
+    st.stop() # Trava o app aqui para quem não logou
 
-# --- CONFIGURAÇÃO DE VARIÁVEIS APÓS LOGIN ---
+# --- VARIÁVEIS PÓS-LOGIN ---
 usuario = st.session_state.get("usuario")
 tipo = st.session_state.get("tipo")
 
-# ---------------- ÁREA DO ADMINISTRADOR ----------------
+# ---------------- CONTROLE DE FUNCIONÁRIOS (ADM) ----------------
 if tipo == "admin":
     st.title(f"👑 Painel ADM - {usuario.title()}")
     
     with st.expander("➕ CADASTRAR NOVO FUNCIONÁRIO"):
-        novo_nome = st.text_input("Nome e Sobrenome completo", placeholder="Ex: amanda silva").strip().lower()
+        novo_nome = st.text_input("Nome e Sobrenome", placeholder="Ex: amanda silva").strip().lower()
         nova_senha = st.text_input("Senha Inicial 🔐", type="password")
         
         if st.button("Validar e Gravar"):
             if " " not in novo_nome:
-                st.warning("⚠️ O sistema exige Nome e Sobrenome para evitar nomes duplicados.")
+                st.warning("⚠️ O sistema exige Nome e Sobrenome para evitar duplicados.")
             elif novo_nome == "" or nova_senha == "":
                 st.error("Preencha todos os campos.")
             else:
-                # REGRA: Avisar o ADM se o nome já existir
+                # REGRA: Avisar o ADM se já existe
                 c.execute("SELECT * FROM usuarios WHERE usuario=?", (novo_nome,))
                 if c.fetchone():
-                    st.error(f"❌ ATENÇÃO ADM: O funcionário '{novo_nome}' já existe no sistema!")
+                    st.error(f"❌ ATENÇÃO: O funcionário '{novo_nome}' já está cadastrado!")
                 else:
                     c.execute("INSERT INTO usuarios VALUES (?, ?, 'funcionario')", (novo_nome, nova_senha))
                     conn.commit()
-                    st.success(f"✅ {novo_nome.title()} cadastrado com sucesso!")
+                    st.success(f"✅ {novo_nome.title()} cadastrado!")
 
-# ---------------- ÁREA DO FUNCIONÁRIO ----------------
+# ---------------- DASHBOARD DO FUNCIONÁRIO ----------------
 if tipo == "funcionario":
     st.title(f"🚀 Dashboard - {usuario.title()}")
     
-    # OPÇÃO DE TROCAR SENHA NA SIDEBAR
     with st.sidebar.expander("⚙️ Minha Senha"):
-        nova_senha_user = st.text_input("Nova Senha", type="password")
-        if st.button("Atualizar Minha Senha"):
-            if nova_senha_user != "":
-                c.execute("UPDATE usuarios SET senha=? WHERE usuario=?", (nova_senha_user, usuario))
+        nova_pw = st.text_input("Nova Senha", type="password")
+        if st.button("Alterar Senha"):
+            if nova_pw:
+                c.execute("UPDATE usuarios SET senha=? WHERE usuario=?", (nova_pw, usuario))
                 conn.commit()
-                st.success("Senha atualizada!")
-            else:
-                st.error("Digite uma senha válida.")
-
-# ---------------- SISTEMA DE ACESSO EL KAM (FIM) ----------------
+                st.success("Senha atualizada!")--
 # =====================================================
 # ================= DASHBOARD ==========================
 # =====================================================
