@@ -192,17 +192,18 @@ if tipo == "admin":
     st.title(f"👑 Painel ADM - {usuario}")
 
     menu = st.sidebar.selectbox(
-    "Menu",
-    [
-    "Dashboard",
-    "Funcionários",
-    "Mercados",
-    "Agenda",
-    "Relatórios",
-    "Fotos"
-    ])
+        "Menu",
+        [
+            "Dashboard",
+            "Funcionários",
+            "Mercados",
+            "Agenda",
+            "Relatórios",
+            "Fotos"
+        ]
+    )
 
-# ---------------- DASHBOARD ----------------
+    # ---------------- DASHBOARD ----------------
 
     if menu == "Dashboard":
 
@@ -213,18 +214,15 @@ if tipo == "admin":
         st.metric("Relatórios enviados", len(rel))
 
         if len(rel) > 0:
-
             graf = rel.groupby("status").size()
-
             st.bar_chart(graf)
 
         st.subheader("Ranking Promotores")
 
         rank = rel.groupby("funcionario").size().sort_values(ascending=False)
-
         st.dataframe(rank)
 
-# ---------------- FUNCIONARIOS ----------------
+    # ---------------- FUNCIONÁRIOS ----------------
 
     elif menu == "Funcionários":
 
@@ -233,104 +231,44 @@ if tipo == "admin":
         user = st.text_input("Usuário")
         senha = st.text_input("Senha")
 
-        if st.button("Cadastrar"):
+        if st.button("Cadastrar funcionário"):
 
-            c.execute(
-            "INSERT INTO usuarios VALUES(?,?,?)",
-            (user,senha,"funcionario"))
+            if user.strip() == "" or senha.strip() == "":
+                st.error("Preencha usuário e senha")
 
-            conn.commit()
-
-            st.success("Funcionário criado")
-
-# ---------------- MERCADOS ----------------
-
-   elif menu == "Mercados":
-
-    st.header("Mercados")
-
-    mercado = st.text_input("Mercado")
-    endereco = st.text_input("Endereço")
-
-    if st.button("Cadastrar mercado"):
-
-        if mercado.strip() == "" or endereco.strip() == "":
-            st.error("Preencha mercado e endereço")
-
-        else:
-            c.execute(
-                "INSERT INTO mercados VALUES(?,?)",
-                (mercado, endereco)
-            )
-
-            conn.commit()
-
-            st.success("Mercado criado")
-
-# ---------------- AGENDA ----------------
-
-    elif menu == "Agenda":
-
-        st.header("Montar agenda")
-
-        funcionarios = pd.read_sql(
-        "SELECT usuario FROM usuarios WHERE tipo='funcionario'",
-        conn)
-
-        mercados = pd.read_sql(
-        "SELECT mercado FROM mercados",
-        conn)
-
-        func = st.selectbox("Funcionário", funcionarios["usuario"])
-
-        dia = st.selectbox(
-        "Dia",
-        ["segunda","terça","quarta","quinta","sexta"]
-        )
-
-        mercado = st.selectbox("Mercado", mercados["mercado"])
-
-        produtos = pd.read_sql(
-        f"SELECT produto FROM produtos WHERE mercado='{mercado}'",
-        conn)
-
-        selecionados=[]
-
-        for p in produtos["produto"]:
-
-            if st.checkbox(p):
-
-                selecionados.append(p)
-
-        if st.button("Salvar agenda"):
-
-            for prod in selecionados:
-
+            else:
                 c.execute(
-                "INSERT INTO agenda VALUES(?,?,?,?)",
-                (func,dia,mercado,prod))
+                    "INSERT INTO usuarios VALUES(?,?,?)",
+                    (user, senha, "funcionario")
+                )
 
-            conn.commit()
+                conn.commit()
 
-            st.success("Agenda criada")
+                st.success("Funcionário criado")
 
-# ---------------- RELATORIOS ----------------
+    # ---------------- MERCADOS ----------------
 
-    elif menu == "Relatórios":
+    elif menu == "Mercados":
 
-        rel = pd.read_sql("SELECT * FROM relatorio", conn)
+        st.header("Mercados")
 
-        st.dataframe(rel)
+        mercado = st.text_input("Mercado")
+        endereco = st.text_input("Endereço")
 
-# ---------------- FOTOS ----------------
+        if st.button("Cadastrar mercado"):
 
-    elif menu == "Fotos":
+            if mercado.strip() == "" or endereco.strip() == "":
+                st.error("Preencha mercado e endereço")
 
-        fotos = os.listdir("fotos")
+            else:
+                c.execute(
+                    "INSERT INTO mercados VALUES(?,?)",
+                    (mercado, endereco)
+                )
 
-        for f in fotos:
+                conn.commit()
 
-            st.image(f"fotos/{f}", width=300)
+                st.success("Mercado criado")
 
 # =====================================================
 # ================= FUNCIONARIO =======================
