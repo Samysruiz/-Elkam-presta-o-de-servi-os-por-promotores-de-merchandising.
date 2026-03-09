@@ -252,7 +252,7 @@ if tipo == "admin":
         mercado = st.text_input("Mercado")
         endereco = st.text_input("Endereço")
 
-        if st.button("Cadastrar mercado"):
+    if st.button("Cadastrar mercado"):
 
     if mercado.strip()=="" or endereco.strip()=="":
         st.error("Preencha mercado e endereço")
