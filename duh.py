@@ -106,51 +106,31 @@ if admin.empty:
 
 # ---------------- LOGIN ----------------
 
-if "logado" not in st.session_state:
-    st.session_state["logado"] = False
+usuario_input = st.text_input("Usuário", placeholder="nome sobrenome ou admin").strip().lower()
+senha_input = st.text_input("Senha", type="password")
 
-if not st.session_state["logado"]:
+if st.button("ENTRAR", use_container_width=True):
 
-    col_login, col_logo = st.columns([1,2])
+    if usuario_input == "":
+        st.error("Digite o usuário")
 
-    with col_login:
+    else:
 
-        st.write("")
-        st.write("")
-        st.markdown("## 🔑 Acesso El Kam")
+        c.execute(
+        "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
+        (usuario_input, senha_input)
+        )
 
-        usuario_input = st.text_input("Usuário", placeholder="nome sobrenome").strip().lower()
-        senha_input = st.text_input("Senha", type="password")
+        user = c.fetchone()
 
-        if st.button("ENTRAR", use_container_width=True):
+        if user:
+            st.session_state["logado"] = True
+            st.session_state["usuario"] = usuario_input
+            st.session_state["tipo"] = user[2]
+            st.rerun()
 
-            if " " not in usuario_input:
-                st.error("Digite Nome e Sobrenome")
-            else:
-
-                c.execute(
-                    "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
-                    (usuario_input, senha_input)
-                )
-
-                user = c.fetchone()
-
-                if user:
-                    st.session_state["logado"] = True
-                    st.session_state["usuario"] = usuario_input
-                    st.session_state["tipo"] = user[2]
-                    st.rerun()
-
-                else:
-                    st.error("Usuário ou senha incorretos")
-
-    with col_logo:
-
-        if os.path.exists("el_kam_logo.png"):
-            st.image("el_kam_logo.png", use_container_width=True)
-
-    st.stop()
-
+        else:
+            st.error("Usuário ou senha incorretos")
 # ---------------- VARIÁVEIS ----------------
 
 usuario = st.session_state.get("usuario")
