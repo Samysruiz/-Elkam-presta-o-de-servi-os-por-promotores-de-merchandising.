@@ -254,13 +254,18 @@ if tipo == "admin":
 
         if st.button("Cadastrar mercado"):
 
-            c.execute(
-            "INSERT INTO mercados VALUES(?,?)",
-            (mercado,endereco))
+    if mercado.strip()=="" or endereco.strip()=="":
+        st.error("Preencha mercado e endereço")
 
-            conn.commit()
+    else:
 
-            st.success("Mercado criado")
+        c.execute(
+        "INSERT INTO mercados VALUES(?,?)",
+        (mercado,endereco))
+
+        conn.commit()
+
+        st.success("Mercado criado")
 
 # ---------------- AGENDA ----------------
 
