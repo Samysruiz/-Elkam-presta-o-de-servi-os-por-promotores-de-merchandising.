@@ -192,16 +192,46 @@ if not st.session_state["logado"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
     # -------- LOGO --------
+    # ---------------- LOGIN ----------------
+
+if "logado" not in st.session_state:
+    st.session_state["logado"] = False
+
+if not st.session_state["logado"]:
+
+    col1, col2 = st.columns([1,1])
+
+    with col1:
+
+        st.title("EL KAM")
+        st.write("Sistema de Promotores")
+
+        usuario_input = st.text_input("Usuário")
+        senha_input = st.text_input("Senha", type="password")
+
+        if st.button("ENTRAR", use_container_width=True):
+
+            c.execute(
+                "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
+                (usuario_input, senha_input)
+            )
+
+            user = c.fetchone()
+
+            if user:
+                st.session_state["logado"] = True
+                st.session_state["usuario"] = usuario_input
+                st.session_state["tipo"] = user[2]
+                st.rerun()
+
+            else:
+                st.error("Usuário ou senha incorretos")
+
     with col2:
 
-        st.markdown('<div class="logo-right">', unsafe_allow_html=True)
-
         if os.path.exists("el_kam_logo.png"):
-            st.image("el_kam_logo.png", width=500)
+            st.image("el_kam_logo.png", use_container_width=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.stop()
     st.stop()
 # ---------------- CONTROLE DE FUNCIONÁRIOS (ADM) ----------------
 if tipo == "admin":
