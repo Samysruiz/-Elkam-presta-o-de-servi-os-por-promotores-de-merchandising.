@@ -192,7 +192,7 @@ if tipo == "funcionario":
             if nova_pw:
                 c.execute("UPDATE usuarios SET senha=? WHERE usuario=?", (nova_pw, usuario))
                 conn.commit()
-                st.success("Senha atualizada!")--
+                st.success("Senha atualizada!")
 # =====================================================
 # ================= DASHBOARD ==========================
 # =====================================================
