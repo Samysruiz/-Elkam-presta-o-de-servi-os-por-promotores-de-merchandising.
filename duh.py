@@ -245,20 +245,27 @@ if tipo == "admin":
 
 # ---------------- MERCADOS ----------------
 
-    elif menu == "Mercados":
+   elif menu == "Mercados":
 
-        st.header("Mercados")
+    st.header("Mercados")
 
-        mercado = st.text_input("Mercado")
-        endereco = st.text_input("Endereço")
+    mercado = st.text_input("Mercado")
+    endereco = st.text_input("Endereço")
 
+    if st.button("Cadastrar mercado"):
 
-       if mercado.strip()=="" or endereco.strip()=="":
-      ^
+        if mercado.strip() == "" or endereco.strip() == "":
+            st.error("Preencha mercado e endereço")
 
-        conn.commit()
+        else:
+            c.execute(
+                "INSERT INTO mercados VALUES(?,?)",
+                (mercado, endereco)
+            )
 
-        st.success("Mercado criado")
+            conn.commit()
+
+            st.success("Mercado criado")
 
 # ---------------- AGENDA ----------------
 
