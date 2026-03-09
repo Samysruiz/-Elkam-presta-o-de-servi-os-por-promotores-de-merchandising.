@@ -252,10 +252,10 @@ if tipo == "admin":
         mercado = st.text_input("Mercado")
         endereco = st.text_input("Endereço")
 
- File "/mount/src/-elkam-presta-o-de-servi-os-por-promotores-de-merchandising./duh.py", line 257
+
       if mercado.strip()=="" or endereco.strip()=="":
       ^
-IndentationError: expected an indented block after 'if' statement on line 255
+
         conn.commit()
 
         st.success("Mercado criado")
