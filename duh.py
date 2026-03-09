@@ -45,7 +45,6 @@ input{
 if os.path.exists("el_kam_logo.png"):
     st.image("el_kam_logo.png",use_container_width=True)
 
-st.title("Sistema EL KAM")
 
 
 # ---------------- PASTA FOTO ----------------
