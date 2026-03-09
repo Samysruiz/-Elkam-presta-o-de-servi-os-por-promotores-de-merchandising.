@@ -253,7 +253,7 @@ if tipo == "admin":
         endereco = st.text_input("Endereço")
 
 
-      if mercado.strip()=="" or endereco.strip()=="":
+       if mercado.strip()=="" or endereco.strip()=="":
       ^
 
         conn.commit()
