@@ -12,45 +12,41 @@ layout="wide",
 initial_sidebar_state="expanded"
 )
 
-# ---------------- LOGO ----------------
-
-if os.path.exists("el_kam_logo.png"):
-    st.image("el_kam_logo.png", width=220)
-
-# ---------------- CSS MOBILE ----------------
-
 st.markdown("""
 <style>
 
 .stApp{
-background-color:#0e1117;
-}
-
-section[data-testid="stSidebar"]{
-background:#111;
-}
-
-.stButton button{
-background:#ff2b2b;
-color:white;
-border-radius:6px;
-width:100%;
+    background-color:black;
 }
 
 h1,h2,h3{
-color:#ff2b2b;
+    color:#ff2b2b;
 }
 
-@media (max-width:768px){
-
-.block-container{
-padding:1rem;
+label{
+    color:white !important;
 }
 
+input{
+    background-color:white !important;
+    color:black !important;
+}
+
+.stButton button{
+    background-color:#ff2b2b;
+    color:white;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
+# ---------------- LOGO ----------------
+
+if os.path.exists("el_kam_logo.png"):
+    st.image("el_kam_logo.png",use_container_width=True)
+
+st.title("Sistema EL KAM")
+
 
 # ---------------- PASTA FOTO ----------------
 
