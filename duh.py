@@ -113,51 +113,75 @@ if admin.empty:
     conn.commit()
 
 # ---------------- LOGIN ----------------
-# ---------------- SISTEMA DE ACESSO EL KAM (REVISADO) ----------------
+# ---------------- LOGIN ----------------
 
 if "logado" not in st.session_state:
     st.session_state["logado"] = False
 
-# TELA DE LOGIN DIVIDIDA (SEM LOGO NO TOPO)
 if not st.session_state["logado"]:
-    # Criamos a divisão: 1 parte para o formulário, 2 partes para a imagem
-    col_login, col_logo = st.columns([1, 2], gap="large") 
 
+    col_login, col_logo = st.columns([1,1])
+
+    # -------- LADO ESQUERDO --------
     with col_login:
-        st.write("") # Espaço para descer um pouco o formulário
-        st.write("")
-        st.markdown("### 🔑 Acesso El Kam")
-        
-        usuario_input = st.text_input("Usuário", placeholder="Ex: eduardo kampf").strip().lower()
-        senha_input = st.text_input("Senha", type="password")
-        
+
+        st.markdown("## 🔑 Acesso El Kam")
+
+        usuario_input = st.text_input(
+            "Usuário",
+            placeholder="Ex: eduardo kampf"
+        ).strip().lower()
+
+        senha_input = st.text_input(
+            "Senha",
+            type="password"
+        )
+
         if st.button("ENTRAR", use_container_width=True):
+
             if " " not in usuario_input:
-                st.error("⚠️ Digite Nome e Sobrenome.")
+                st.error("Digite Nome e Sobrenome.")
+
             else:
-                c.execute("SELECT * FROM usuarios WHERE usuario=? AND senha=?", (usuario_input, senha_input))
+                c.execute(
+                    "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
+                    (usuario_input, senha_input)
+                )
+
                 user = c.fetchone()
-                
+
                 if user:
                     st.session_state["logado"] = True
                     st.session_state["usuario"] = usuario_input
                     st.session_state["tipo"] = user[2]
                     st.rerun()
+
                 else:
-                    st.error("❌ Usuário ou senha incorretos.")
+                    st.error("Usuário ou senha incorretos.")
 
+    # -------- LADO DIREITO --------
     with col_logo:
-        # Aqui o logo ocupa toda a parte direita
+
         if os.path.exists("el_kam_logo.png"):
+
+            st.markdown(
+            """
+            <div style="
+            height:90vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background-color:black;
+            ">
+            """,
+            unsafe_allow_html=True
+            )
+
             st.image("el_kam_logo.png", use_container_width=True)
-        else:
-            st.info("Arquivo 'el_kam_logo.png' não encontrado.")
 
-    st.stop() # Trava o app aqui para quem não logou
+            st.markdown("</div>", unsafe_allow_html=True)
 
-# --- VARIÁVEIS PÓS-LOGIN ---
-usuario = st.session_state.get("usuario")
-tipo = st.session_state.get("tipo")
+    st.stop()
 
 # ---------------- CONTROLE DE FUNCIONÁRIOS (ADM) ----------------
 if tipo == "admin":
