@@ -247,7 +247,7 @@ if tipo == "admin":
 
                 st.success("Funcionário criado")
 
-  elif menu == "Mercados":
+    elif menu == "Mercados":
 
     st.header("Mercados")
 
