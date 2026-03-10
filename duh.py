@@ -286,18 +286,17 @@ hr { border: none !important; border-top: 1px solid #1c1c1c !important; margin: 
 .badge-falta { background:#2b1f0a; color:#f59e0b; border:1px solid #f59e0b44; border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; }
 .badge-fecha { background:#2b0a0a; color:#ff4444; border:1px solid #ff444444; border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; }
 
-/* ── NAV BUTTONS (mobile top bar substituindo bottom nav) ── */
-/* Esconde em desktop */
+/* ── NAV BUTTONS: mobile-topnav — esconde no desktop, mostra no celular ── */
+.mobile-topnav { display: block; }
+
 @media (min-width: 769px) {
-    [data-testid="stHorizontalBlock"]:has([data-testid="fn_ini"]),
-    [data-testid="stHorizontalBlock"]:has([data-testid="mn_d"]) {
-        display: none !important;
-    }
+    /* Esconde os botões de nav rápida no desktop — sidebar já cuida da navegação */
+    .mobile-topnav { display: none !important; }
 }
-/* Estilo mobile nav */
+
+/* Estilo dos botões quando visível no celular */
 @media (max-width: 768px) {
-    [data-testid="stHorizontalBlock"]:has([data-testid="fn_ini"]) button,
-    [data-testid="stHorizontalBlock"]:has([data-testid="mn_d"]) button {
+    .mobile-topnav button {
         background: #111 !important;
         border: 1px solid #1e1e1e !important;
         border-radius: 12px !important;
@@ -309,8 +308,8 @@ hr { border: none !important; border-top: 1px solid #1c1c1c !important; margin: 
         text-align: center !important;
         line-height: 1.3 !important;
     }
-    [data-testid="stHorizontalBlock"]:has([data-testid="fn_ini"]) button:hover,
-    [data-testid="stHorizontalBlock"]:has([data-testid="mn_d"]) button:hover {
+    .mobile-topnav button:hover,
+    .mobile-topnav button:active {
         color: #ff2b2b !important;
         border-color: #ff2b2b44 !important;
         background: #1a0000 !important;
@@ -1031,14 +1030,15 @@ if tipo_efetivo == "admin":
                 st.session_state["adm_menu"] = _opt
                 st.rerun()
 
-    # ── TOP NAV RÁPIDA (mobile + desktop) ──
+    # ── TOP NAV RÁPIDA — só aparece no celular (CSS esconde em desktop) ──
+    st.markdown('<div class="mobile-topnav">', unsafe_allow_html=True)
     _nca,_ncb,_ncc,_ncd,_nce,_ncf,_ncg = st.columns(7)
     with _nca:
         if st.button("📊\nDash",    key="mn_d",   use_container_width=True): st.session_state["adm_menu"]="Dashboard";         st.rerun()
     with _ncb:
         if st.button("👥\nFuncs",   key="mn_f",   use_container_width=True): st.session_state["adm_menu"]="Funcionários";       st.rerun()
     with _ncc:
-        if st.button("🏪\nMercados",key="mn_m",   use_container_width=True): st.session_state["adm_menu"]="Mercados";           st.rerun()
+        if st.button("🏪\nMercado", key="mn_m",   use_container_width=True): st.session_state["adm_menu"]="Mercados";           st.rerun()
     with _ncd:
         if st.button("📋\nAgenda",  key="mn_ag",  use_container_width=True): st.session_state["adm_menu"]="Agenda";             st.rerun()
     with _nce:
@@ -1047,6 +1047,7 @@ if tipo_efetivo == "admin":
         if st.button("💬\nChat",    key="mn_c",   use_container_width=True): st.session_state["adm_menu"]="Chat";               st.rerun()
     with _ncg:
         if st.button("⚙️\nConf.",   key="mn_cfg", use_container_width=True): st.session_state["adm_menu"]="⚙️ Configurações";   st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── NOTIFICAÇÃO DE MENSAGENS NÃO LIDAS ──
     msgs_novas = db_read(
@@ -1427,8 +1428,16 @@ if tipo_efetivo == "admin":
                     st.warning(f"'{fo}' não tem agenda.")
                 else:
                     st.dataframe(ag_orig, use_container_width=True, hide_index=True)
-                    apagar = st.checkbox("Substituir agenda atual do destino", value=True)
-                    if st.button("🔁 Copiar agenda completa"):
+                    apagar = st.checkbox("Substituir agenda atual do destino", value=True, key="cp_apagar")
+                    st.markdown(
+                        f"<div style='background:#1a0800;border:1px solid #f59e0b33;border-radius:8px;"
+                        f"padding:10px 14px;margin:8px 0;color:#888;font-size:12px'>"
+                        f"Vai copiar <b style='color:#f59e0b'>{len(ag_orig)} item(ns)</b> de "
+                        f"<b style='color:#ddd'>{fo}</b> → <b style='color:#ddd'>{fd}</b>"
+                        f"{'  ·  <span style=\'color:#ff4444\'>agenda atual será apagada</span>' if apagar else ''}"
+                        f"</div>",
+                        unsafe_allow_html=True)
+                    if st.button("✅ Confirmar cópia de agenda", key="cp_confirm", use_container_width=True):
                         if fo == fd:
                             st.error("Origem e destino iguais.")
                         else:
@@ -1442,8 +1451,8 @@ if tipo_efetivo == "admin":
                                     db_exec("INSERT INTO agenda (funcionario,dia,mercado,produto) VALUES(?,?,?,?)",
                                               (fd, r["dia"], r["mercado"], r["produto"]))
                                     ins += 1
-                            # committed by db_exec
                             st.success(f"✅ {ins} tarefas copiadas para '{fd}'!")
+                            st.session_state["exp_copy_ag"] = False
                             st.rerun()
 
         if "exp_imp_ag" not in st.session_state: st.session_state["exp_imp_ag"] = False
@@ -1497,71 +1506,143 @@ if tipo_efetivo == "admin":
                 except Exception as e:
                     st.error(f"Erro ao ler CSV: {e}")
 
-        section_title("Agenda atual")
-        ag_df = db_read("SELECT rowid, funcionario, dia, mercado, produto FROM agenda")
+        # ══════════════════════════════════════════
+        # AGENDAS POR FUNCIONÁRIO
+        # ══════════════════════════════════════════
+        st.markdown("<hr style='border-color:#1c1c1c;margin:28px 0 20px'>", unsafe_allow_html=True)
+        section_title("📋 Agendas por funcionário")
 
-        if ag_df.empty:
-            st.info("Nenhuma tarefa cadastrada.")
+        _all_funcs = db_read("SELECT usuario FROM usuarios WHERE tipo='funcionario' AND usuario!='superadmin'")
+        _mercs_list = db_read("SELECT mercado FROM mercados")["mercado"].tolist() if not db_read("SELECT mercado FROM mercados").empty else []
+        _prods_list = db_read("SELECT DISTINCT produto FROM produtos")["produto"].tolist() if not db_read("SELECT DISTINCT produto FROM produtos").empty else []
+
+        if _all_funcs.empty:
+            st.info("Nenhum funcionário cadastrado.")
         else:
-            funcs_filt = ["Todos"] + sorted(ag_df["funcionario"].unique().tolist())
-            filt = st.selectbox("Filtrar por funcionário", funcs_filt, key="filt_ag")
-            if filt != "Todos":
-                ag_df = ag_df[ag_df["funcionario"] == filt]
+            for _func_u in _all_funcs["usuario"].tolist():
+                _ag_f = db_read("SELECT rowid, dia, mercado, produto FROM agenda WHERE funcionario=?", (_func_u,))
+                _n_items = len(_ag_f)
 
-            st.caption("Marque os itens e clique em **Excluir selecionados**.")
-            selecionados = []
-            for dia_e in DIAS_SEMANA:
-                df_d = ag_df[ag_df["dia"] == dia_e]
-                if df_d.empty: continue
-                st.markdown(
-                    f"<div style='color:#ff2b2b;font-size:10px;font-weight:700;letter-spacing:1px;"
-                    f"text-transform:uppercase;margin:14px 0 6px'>📅 {dia_e}</div>",
-                    unsafe_allow_html=True)
-                # Agrupar por mercado
-                for merc_g in df_d["mercado"].unique():
-                    prods_g = df_d[df_d["mercado"]==merc_g]
+                # ── CABEÇALHO DO CARD DO FUNCIONÁRIO ──
+                _fk = f"ag_open_{_func_u}"
+                if _fk not in st.session_state: st.session_state[_fk] = False
+
+                _hcol1, _hcol2, _hcol3 = st.columns([6, 2, 2])
+                with _hcol1:
                     st.markdown(
-                        f"<div style='color:#888;font-size:11px;padding:2px 0 2px 10px;border-left:2px solid #1c1c1c'>"
-                        f"🏪 <b style='color:#ccc'>{merc_g}</b></div>",
+                        f"<div style='background:#111;border:1px solid #1c1c1c;border-radius:12px;"
+                        f"padding:14px 18px;margin:6px 0'>"
+                        f"<span style='color:#ff2b2b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px'>Funcionário</span><br>"
+                        f"<span style='color:#fff;font-size:16px;font-weight:800'>"
+                        f"👤 {_func_u.split('.')[0].capitalize() + ' ' + (_func_u.split('.')[1].capitalize() if '.' in _func_u else '')}"
+                        f"</span>"
+                        f"<span style='color:#444;font-size:12px;margin-left:10px'>{_n_items} item(ns)</span>"
+                        f"</div>",
                         unsafe_allow_html=True)
-                    for _, row in prods_g.iterrows():
-                        ck, ci = st.columns([1, 10])
-                        with ck:
-                            if st.checkbox("", key=f"sel_{row['rowid']}", label_visibility="collapsed"):
-                                selecionados.append(int(row["rowid"]))
-                        with ci:
-                            st.markdown(
-                                f"<div style='color:#777;font-size:12px;padding:3px 0 3px 18px'>"
-                                f"· {row['produto']}"
-                                f" <span style='color:#333'>— {row['funcionario']}</span></div>",
-                                unsafe_allow_html=True)
+                with _hcol2:
+                    st.markdown("<div style='height:22px'></div>", unsafe_allow_html=True)
+                    _btn_lbl = "🔼 Fechar" if st.session_state[_fk] else "📋 Ver agenda"
+                    if st.button(_btn_lbl, key=f"toggle_{_func_u}", use_container_width=True):
+                        st.session_state[_fk] = not st.session_state[_fk]
+                        st.rerun()
+                with _hcol3:
+                    st.markdown("<div style='height:22px'></div>", unsafe_allow_html=True)
+                    if st.button("⚠️ Limpar tudo", key=f"clr_{_func_u}", use_container_width=True):
+                        st.session_state[f"confirm_clr_{_func_u}"] = True
+                        st.rerun()
 
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-            ce1, ce2 = st.columns([3, 1])
-            with ce1:
-                if selecionados:
-                    st.warning(f"{len(selecionados)} item(ns) selecionado(s).")
-            with ce2:
-                if st.button("🗑️ Excluir selecionados", disabled=not selecionados):
-                    for rid in selecionados:
-                        db_exec("DELETE FROM agenda WHERE rowid=?", (rid,))
-                    # committed by db_exec
-                    st.success(f"✅ {len(selecionados)} excluído(s).")
-                    st.rerun()
+                # Confirmação de limpeza
+                if st.session_state.get(f"confirm_clr_{_func_u}", False):
+                    st.warning(f"⚠️ Apagar TODA a agenda de **{_func_u}**? Irreversível.")
+                    _cc1, _cc2 = st.columns(2)
+                    with _cc1:
+                        if st.button("✅ Confirmar limpeza", key=f"ok_clr_{_func_u}", use_container_width=True):
+                            fazer_backup()
+                            db_exec("DELETE FROM agenda WHERE funcionario=?", (_func_u,))
+                            st.session_state[f"confirm_clr_{_func_u}"] = False
+                            st.success(f"Agenda de {_func_u} limpa!")
+                            st.rerun()
+                    with _cc2:
+                        if st.button("✖ Cancelar", key=f"cancel_clr_{_func_u}", use_container_width=True):
+                            st.session_state[f"confirm_clr_{_func_u}"] = False
+                            st.rerun()
 
-            if "exp_limpar_ag" not in st.session_state: st.session_state["exp_limpar_ag"] = False
-            if st.button(("🔼 ️ Limpar agenda completa" if st.session_state["exp_limpar_ag"] else "⚠ ️ Limpar agenda completa"), key="btn_exp_limpar_ag"):
-                st.session_state["exp_limpar_ag"] = not st.session_state["exp_limpar_ag"]
-                st.rerun()
-            if st.session_state["exp_limpar_ag"]:
-                st.warning("Apaga todos os itens do filtro. Irreversível.")
-                if st.button("Confirmar limpeza"):
-                    fazer_backup()
-                    if filt == "Todos":
-                        db_exec("DELETE FROM agenda")
+                if st.session_state[_fk]:
+                    # ── CONTEÚDO DA AGENDA ──
+                    st.markdown("<div style='background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:16px 18px;margin-bottom:8px'>", unsafe_allow_html=True)
+
+                    if _ag_f.empty:
+                        st.markdown("<div style='color:#333;font-size:13px;text-align:center;padding:12px'>Nenhum item na agenda.</div>", unsafe_allow_html=True)
                     else:
-                        db_exec("DELETE FROM agenda WHERE funcionario=?", (filt,))
-                    # auto-committed; st.rerun()
+                        for _dia_e in DIAS_SEMANA:
+                            _df_d = _ag_f[_ag_f["dia"] == _dia_e]
+                            if _df_d.empty: continue
+                            st.markdown(
+                                f"<div style='color:#ff2b2b;font-size:10px;font-weight:700;"
+                                f"letter-spacing:1.5px;text-transform:uppercase;margin:12px 0 6px'>"
+                                f"📅 {_dia_e}</div>",
+                                unsafe_allow_html=True)
+                            for _mg in _df_d["mercado"].unique():
+                                _pgs = _df_d[_df_d["mercado"]==_mg]
+                                st.markdown(
+                                    f"<div style='color:#888;font-size:12px;padding:4px 0 2px 10px;"
+                                    f"border-left:2px solid #ff2b2b33'>🏪 <b style='color:#ccc'>{_mg}</b></div>",
+                                    unsafe_allow_html=True)
+                                for _, _row in _pgs.iterrows():
+                                    _pc1, _pc2 = st.columns([8, 1])
+                                    with _pc1:
+                                        st.markdown(
+                                            f"<div style='color:#666;font-size:12px;padding:3px 0 3px 20px'>"
+                                            f"· {_row['produto']}</div>",
+                                            unsafe_allow_html=True)
+                                    with _pc2:
+                                        if st.button("🗑️", key=f"del_ag_{_row['rowid']}_{_func_u}",
+                                                     help=f"Remover {_row['produto']}"):
+                                            db_exec("DELETE FROM agenda WHERE rowid=?", (int(_row["rowid"]),))
+                                            st.rerun()
+
+                    # ── ADICIONAR ITEM INDIVIDUAL ──
+                    st.markdown("<hr style='border-color:#1c1c1c;margin:14px 0'>", unsafe_allow_html=True)
+                    _ak = f"ag_add_open_{_func_u}"
+                    if _ak not in st.session_state: st.session_state[_ak] = False
+                    if st.button(("🔼 Fechar" if st.session_state[_ak] else "➕ Adicionar item"), key=f"add_toggle_{_func_u}", use_container_width=True):
+                        st.session_state[_ak] = not st.session_state[_ak]
+                        st.rerun()
+
+                    if st.session_state[_ak]:
+                        _ia1, _ia2 = st.columns(2)
+                        with _ia1:
+                            _ds2 = st.selectbox("Dia", DIAS_SEMANA, key=f"ia_dia_{_func_u}")
+                        with _ia2:
+                            _ms2 = st.selectbox("Mercado", _mercs_list if _mercs_list else ["(sem mercados)"], key=f"ia_merc_{_func_u}")
+                        _pl2 = _prods_list + ["➕ Novo produto..."]
+                        _psel2 = st.selectbox("Produto", _pl2, key=f"ia_prod_{_func_u}")
+                        if _psel2 == "➕ Novo produto...":
+                            _ps2 = st.text_input("Nome do novo produto", key=f"ia_prod_new_{_func_u}")
+                        else:
+                            _ps2 = _psel2
+                        if st.button("✅ Confirmar adição", key=f"ia_add_{_func_u}", use_container_width=True):
+                            if not _ps2.strip():
+                                st.warning("Informe o produto.")
+                            elif not _mercs_list:
+                                st.warning("Cadastre um mercado primeiro.")
+                            else:
+                                _dup = conn.cursor().execute(
+                                    "SELECT COUNT(*) FROM agenda WHERE funcionario=? AND dia=? AND mercado=? AND produto=?",
+                                    (_func_u, _ds2, _ms2, _ps2.strip())).fetchone()[0]
+                                if _dup > 0:
+                                    st.warning("⚠️ Item já existe nesse dia/mercado.")
+                                else:
+                                    db_exec("INSERT INTO agenda (funcionario,dia,mercado,produto) VALUES(?,?,?,?)",
+                                              (_func_u, _ds2, _ms2, _ps2.strip()))
+                                    if _ps2.strip() not in _prods_list:
+                                        db_exec("INSERT OR IGNORE INTO produtos (mercado,produto) VALUES(?,?)",
+                                                  (_ms2, _ps2.strip()))
+                                    st.success(f"✅ Adicionado: {_ps2.strip()} — {_ms2} / {_ds2}")
+                                    st.session_state[_ak] = False
+                                    st.rerun()
+
+                    st.markdown("</div>", unsafe_allow_html=True)
 
     # ── RELATÓRIOS ────────────────────────────────────────
 
@@ -2082,8 +2163,8 @@ else:
         else:
             st.session_state["func_aba"] = "🏠  Início"
 
-    # Botões mobile — session_state puro, sem query params
-    _at = st.session_state["func_aba"]
+    # Botões mobile — só aparecem no celular (CSS esconde em desktop)
+    st.markdown('<div class="mobile-topnav">', unsafe_allow_html=True)
     _fn1, _fn2, _fn3, _fn4 = st.columns(4)
     with _fn1:
         if st.button("🏠\nInício",  key="fn_ini",  use_container_width=True):
@@ -2098,6 +2179,7 @@ else:
     with _fn4:
         if st.button("⚙️\nConfig",  key="fn_cfg",  use_container_width=True):
             st.session_state["func_aba"] = "⚙️  Config"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # Sidebar: sair + botões de navegação (desktop)
     with st.sidebar:
