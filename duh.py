@@ -3777,10 +3777,19 @@ else:
                         _st_prod = "falta" if (_prod_nm in prod_faltante) else status_val
                         _pf_prod = _prod_nm if _st_prod == "falta" else ""
                         db_exec(
-                            """INSERT INTO relatorio
-                               (data,hora,funcionario,mercado,produto,status,foto,produto_faltante,foto_b64,enviado_mercado,notif_admin,foto_hash)
-                               VALUES(?,?,?,?,?,?,?,?,?,0,0,?)""",
-                            (_data_hoje, _hora_agora, usuario, merc, _prod_nm,
+                            db_exec(
+                                """ INSERT INTO relatorio (
+data, funcionario, mercado, produto, status, foto,
+produto_faltante, foto_b64, hora,
+enviado_mercado, notif_admin, lat, lon, foto_hash
+)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+""",
+(
+data, funcionario, mercado, produto, status, foto,
+produto_faltante, foto_b64, hora,
+0, 0, lat, lon, foto_hash
+))
                              _st_prod, _fp2 if os.path.exists(_fp2) else "",
                              _pf_prod, _fb64_prod, _foto_hash))
                         _prods_wa_list.append(
