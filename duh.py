@@ -3776,8 +3776,22 @@ else:
 
                         _st_prod = "falta" if (_prod_nm in prod_faltante) else status_val
                         _pf_prod = _prod_nm if _st_prod == "falta" else ""
-  foto = _fp2 if os.path.exists(_fp2) else ""
+ # ── FOTO OBRIGATÓRIA ──
+if not os.path.exists(_fp2):
+    st.error("⚠️ É obrigatório tirar foto do produto antes de enviar o relatório.")
+    st.stop()
 
+foto = _fp2
+
+# ── GPS (não trava envio se falhar) ──
+try:
+    lat = float(lat)
+    lon = float(lon)
+except:
+    lat = None
+    lon = None
+
+# ── SALVA RELATÓRIO ──
 db_exec("""
 INSERT INTO relatorio (
 data, funcionario, mercado, produto, status, foto,
@@ -3787,9 +3801,20 @@ enviado_mercado, notif_admin, lat, lon, foto_hash
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 """,
 (
-data, funcionario, mercado, produto, status, foto,
-produto_faltante, foto_b64, hora,enviado_mercado,notif_admin
-0, 0, lat, lon, foto_hash
+data,
+funcionario,
+mercado,
+produto,
+status,
+foto,
+produto_faltante,
+foto_b64,
+hora,
+0,
+0,
+lat,
+lon,
+foto_hash
 ))
                         _prods_wa_list.append(
                             f"  {'✅' if _st_prod == 'abastecido' else ('⚠️' if _st_prod == 'falta' else '❌')} {_prod_nm}")
