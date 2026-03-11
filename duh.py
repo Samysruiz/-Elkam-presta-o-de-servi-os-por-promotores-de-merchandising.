@@ -3788,7 +3788,7 @@ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 """,
 (
 data, funcionario, mercado, produto, status, foto,
-produto_faltante, foto_b64, hora,
+produto_faltante, foto_b64, hora,enviado_mercado,notif_admin
 0, 0, lat, lon, foto_hash
 ))
                         _prods_wa_list.append(
