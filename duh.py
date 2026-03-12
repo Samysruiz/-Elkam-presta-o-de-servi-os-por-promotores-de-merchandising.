@@ -3227,7 +3227,7 @@ else:
 
     # ── INÍCIO / DASHBOARD FUNCIONÁRIO ──
 
-    if aba == "🏠  Início":
+    if aba == "🏠  Início": 
         nome_exib_d = usuario.split(".")[0].capitalize()
         page_header(f"Olá, {nome_exib_d}! 👋", "Painel do dia")
         _hj = str(today_br())
