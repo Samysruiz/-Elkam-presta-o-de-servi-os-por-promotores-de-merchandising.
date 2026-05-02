@@ -551,15 +551,7 @@ _limpar_fotos_antigas()
 
 @st.cache_resource
 def get_pool():
-    return psycopg2.pool.ThreadedConnectionPool(
-        1, 10,
-        host=st.secrets["SUPABASE_HOST"],
-        port=int(st.secrets.get("SUPABASE_PORT", 6543)),
-        database="postgres",
-        user=st.secrets["SUPABASE_USER"],
-        password=st.secrets["SUPABASE_PASS"],
-        sslmode="require"
-    )
+    return psycopg2.pool.ThreadedConnectionPool(1, 10, st.secrets["DATABASE_URL"])
 
 _pool = get_pool()
 _db_lock = threading.Lock()
