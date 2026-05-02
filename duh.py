@@ -2155,7 +2155,7 @@ if tipo_efetivo == "admin":
                             _dup_df = db_read("SELECT COUNT(*) as cnt FROM agenda WHERE funcionario=? AND dia=? AND mercado=? AND produto=?",
                                 (fs, ds, ms, ps.strip()))
                             _dup = int(_dup_df2.iloc[0]["cnt"]) if not _dup_df2.empty else 0
-                                _dup
+                            _dup
                             if dup > 0:
                                 st.warning("⚠️ Produto já existe nesse dia/mercado.")
                             else:
