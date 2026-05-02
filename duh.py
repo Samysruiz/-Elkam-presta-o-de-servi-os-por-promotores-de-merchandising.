@@ -336,7 +336,7 @@ hr { border: none !important; border-top: 1px solid #1c1c1c !important; margin: 
     background-color: #111 !important;
     border: 1px solid #1e1e1e !important;
     border-radius: 10px !important;
-    color: #ddd !important;
+    color: #ddd !important; 
     font-weight: 600 !important;
     font-size: 13px !important;
     text-align: left !important;
