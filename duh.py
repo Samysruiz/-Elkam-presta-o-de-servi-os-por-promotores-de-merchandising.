@@ -674,21 +674,7 @@ def _col_exists(tabela: str, coluna: str) -> bool:
         (tabela, coluna))
     return not r.empty
 
-for _col, _tipo in [
-    ("usuarios","primeiro_acesso","INTEGER DEFAULT 0"),
-    ("usuarios","telefone","TEXT DEFAULT ''"),
-    ("usuarios","email","TEXT DEFAULT ''"),
-    ("usuarios","aniversario","TEXT DEFAULT ''"),
-    ("mercados","logo","TEXT DEFAULT ''"),
-    ("mercados","telefone_rel","TEXT DEFAULT ''"),
-    ("mercados","email_rel","TEXT DEFAULT ''"),
-    ("relatorio","produto_faltante","TEXT DEFAULT ''"),
-    ("relatorio","foto_preco","TEXT DEFAULT ''"),
-    ("relatorio","preco_valor","TEXT DEFAULT ''"),
-    ("clientes","telefone","TEXT DEFAULT ''"),
-    ("clientes","primeiro_acesso","INTEGER DEFAULT 0"),
-]:
-    pass
+
 
 for _mig in [
     ("usuarios","primeiro_acesso","INTEGER DEFAULT 0"),
