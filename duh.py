@@ -336,7 +336,7 @@ hr { border: none !important; border-top: 1px solid #1c1c1c !important; margin: 
     background-color: #111 !important;
     border: 1px solid #1e1e1e !important;
     border-radius: 10px !important;
-    color: #ddd !important; 
+    color: #ddd !important;
     font-weight: 600 !important;
     font-size: 13px !important;
     text-align: left !important;
@@ -551,7 +551,9 @@ _limpar_fotos_antigas()
 
 @st.cache_resource
 def get_pool():
-    return psycopg2.pool.ThreadedConnectionPool(1, 10, st.secrets["DATABASE_URL"])
+    import os
+    db_url = os.environ.get("DATABASE_URL") or st.secrets.get("DATABASE_URL", "")
+    return psycopg2.pool.ThreadedConnectionPool(1, 10, db_url)
 
 _pool = get_pool()
 _db_lock = threading.Lock()
