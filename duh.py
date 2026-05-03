@@ -525,7 +525,7 @@ def section_title(text):
     """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════
-#  BANCO — PostgreSQL (Supabase) persistente
+#  BANCO — PostgreSQL (Neon) persistente
 # ═══════════════════════════════════════════════
 
 import threading, time as _time
@@ -551,8 +551,8 @@ _limpar_fotos_antigas()
 
 @st.cache_resource
 def get_pool():
-    import os
-    db_url = os.environ.get("DATABASE_URL") or st.secrets.get("DATABASE_URL", "")
+    import os as _os
+    db_url = _os.environ.get("DATABASE_URL") or st.secrets.get("DATABASE_URL", "")
     return psycopg2.pool.ThreadedConnectionPool(1, 10, db_url)
 
 _pool = get_pool()
@@ -674,8 +674,6 @@ def _col_exists(tabela: str, coluna: str) -> bool:
         (tabela, coluna))
     return not r.empty
 
-
-
 for _mig in [
     ("usuarios","primeiro_acesso","INTEGER DEFAULT 0"),
     ("usuarios","telefone","TEXT DEFAULT ''"),
@@ -708,7 +706,7 @@ if db_read("SELECT * FROM usuarios WHERE usuario='superadmin'").empty:
 import shutil, glob
 
 def fazer_backup():
-    """Supabase é persistente — backup disponível no dashboard do Supabase."""
+    """Neon é persistente — backup disponível no dashboard do Neon."""
     pass
 
 # ── ENVIO DE EMAIL ──
@@ -1303,11 +1301,8 @@ if tipo_efetivo == "admin":
         # Marca como notificado ao abrir dashboard ou relatórios
         if menu in ("Dashboard","Relatórios"):
             try:
-                conn2 = get_conn()
-                conn2.cursor().execute(
-                    "UPDATE relatorio SET notif_admin=1 WHERE data=? AND (notif_admin IS NULL OR notif_admin=0)",
+                db_exec("UPDATE relatorio SET notif_admin=1 WHERE data=? AND (notif_admin IS NULL OR notif_admin=0)",
                     (str(today_br()),))
-                conn2.commit()
             except: pass
 
     # ── DASHBOARD ─────────────────────────────────────────
@@ -1694,8 +1689,7 @@ if tipo_efetivo == "admin":
                     st.error("Preencha nome e sobrenome.")
                 else:
                     login = f"{nome.strip().lower()}.{sobrenome.strip().lower()}"
-                    db_exec("SELECT usuario FROM usuarios WHERE usuario=?", (login,))
-                    if c.fetchone():
+                    if not db_read("SELECT usuario FROM usuarios WHERE usuario=?", (login,)).empty:
                         st.error(f"Login '{login}' já existe.")
                     else:
                         db_exec("INSERT INTO usuarios (usuario,senha,tipo,primeiro_acesso,telefone,aniversario) VALUES(?,?,?,?,?,?)",
@@ -1968,8 +1962,8 @@ if tipo_efetivo == "admin":
                 if not mercado.strip() or not endereco.strip():
                     st.warning("Preencha nome e endereço.")
                 else:
-                    db_exec("SELECT mercado FROM mercados WHERE endereco=?", (endereco.strip(),))
-                    dup = c.fetchone()
+                    _dup_merc_df = db_read("SELECT mercado FROM mercados WHERE endereco=?", (endereco.strip(),))
+                    dup = tuple(_dup_merc_df.iloc[0]) if not _dup_merc_df.empty else None
                     if dup:
                         st.error(f"Endereço já cadastrado para '{dup[0]}'.")
                     else:
